@@ -14,7 +14,7 @@ func main() {
     println("Hello world!")
 }
 ```
-The things that get moved here are something I use regularly, and don't want to always recompiple, but do want to revision control.
+The things that get moved here are something I use regularly, and __*don't*__ want to always re-compile, and __*do*__ want to revision control.
 
 ## Tools
 
