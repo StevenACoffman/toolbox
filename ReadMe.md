@@ -34,3 +34,8 @@ $ eureka-lookup search3 prod
 ```
 $ generate-tls-cert --host=localhost,127.0.0.1
 ```
+
+### Github Make Personal Access Token
+```
+$ github-make-token "My token for triaging pull requests"
+```
