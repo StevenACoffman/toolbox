@@ -18,3 +18,19 @@ The things that get moved here are something I use regularly, and don't want to 
 
 ## Tools
 
+#### What The Issue: Find the Jira issue from the topic
+```
+$ wti CORE-5339
+
+```
+
+#### Eureka Lookup: Lookup URL for an instance using Eureka Service discovery
+```
+$ eureka-lookup search3 prod
+```
+
+#### Generate TLS Cert
+
+```
+$ generate-tls-cert --host=localhost,127.0.0.1
+```

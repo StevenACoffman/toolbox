@@ -7,9 +7,12 @@ bin/eureka-lookup:
 bin/generate-tls-cert:
 	go build -o bin/generate-tls-cert cmd/generate-tls-cert/generate.go
 
-all: bin/eureka-lookup bin/generate-tls-cert
+bin/wti:
+	go build -o bin/wti cmd/wti/wti.go
 
-install: bin/eureka-lookup bin/generate-tls-cert
+all: bin/eureka-lookup bin/generate-tls-cert bin/wti
+
+install: bin/eureka-lookup bin/generate-tls-cert bin/wti
 	cp bin/* ~/bin
 
 clean:
