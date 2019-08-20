@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
 )
 
 /*
@@ -91,7 +93,7 @@ func main() {
 			organizationName = remoteUrlChunks[len(remoteUrlChunks)-1]
 		}
 	}
-	fmt.Println("Current Org/Repo" + organizationName + "/" + repoName)
+	fmt.Println("Current Org/Repo: " + organizationName + "/" + repoName)
 
 	title := "Snappier title"
 
@@ -102,7 +104,7 @@ func main() {
 	} else {
 		title = args[0]
 	}
-
+	fmt.Println("title:"+title)
 	stat, err := os.Stdin.Stat()
 	if err != nil {
 		panic(err)
@@ -113,16 +115,24 @@ func main() {
 		fmt.Println("Usage: github-make-pull <title>")
 		return
 	}
-	bytes, _ := ioutil.ReadAll(os.Stdin)
-	prDescription := string(bytes)
+	stdInBytes, _ := ioutil.ReadAll(os.Stdin)
+	prDescription := string(stdInBytes)
+	fmt.Println("PR Description:"+prDescription)
 
 	input := &github.NewPullRequest{Title: github.String(title), Head: github.String(head), Body: github.String(prDescription)}
 	pull, response, err := client.PullRequests.Create(context.Background(), organizationName, repoName, input)
+
 	if err != nil {
 		fmt.Errorf("PullRequests.Create returned error: %v", err)
 	}
-	fmt.Print(pull)
-	fmt.Print(response.String())
+	fmt.Printf("%v\n",pull)
+	fmt.Printf("%v\n", response.Status)
+	fmt.Printf("%v\n", response.StatusCode)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	bodyString := buf.String()
+	fmt.Printf("%v\n", bodyString)
+	fmt.Print("%v\n",response.String())
 
 }
 
