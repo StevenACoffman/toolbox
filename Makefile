@@ -7,15 +7,18 @@ bin/eureka-lookup:
 bin/generate-tls-cert:
 	go build -o bin/generate-tls-cert cmd/generate-tls-cert/generate.go
 
+bin/github-make-pull:
+    go build -o bin/github-make-pull cmd/github-make-pull/github-make-pull.go
+
 bin/github-make-token:
     go build -o bin/github-make-token cmd/github-make-token/github-make-token.go
 
 bin/wti:
 	go build -o bin/wti cmd/wti/wti.go
 
-all: bin/eureka-lookup bin/generate-tls-cert bin/github-make-token bin/wti
+all: bin/eureka-lookup bin/generate-tls-cert bin/github-make-pull bin/github-make-token bin/wti
 
-install: bin/eureka-lookup bin/generate-tls-cert bin/github-make-token bin/wti
+install: bin/eureka-lookup bin/generate-tls-cert bin/github-make-pull bin/github-make-token bin/wti
 	cp bin/* ~/bin
 
 clean:
