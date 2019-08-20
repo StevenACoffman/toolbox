@@ -89,7 +89,7 @@ func main() {
 	}
 	fmt.Println("Current Org/Repo" + organizationName + "/" + repoName)
 
-	title := "Snappy title"
+	title := "Snappier title"
 
 	args := getArgs()
 	if len(args) == 0 {
