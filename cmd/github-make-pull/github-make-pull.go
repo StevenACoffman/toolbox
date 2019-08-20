@@ -182,9 +182,13 @@ func main() {
 	pull, response, err := client.PullRequests.Create(context.Background(), organizationName, repoName, input)
 
 	if err != nil {
+		if response.StatusCode == 422 {
+			fmt.Println("Got Unprocessessable Entity Error")
+		}
 		fmt.Errorf("PullRequests.Create returned error: %v", err)
 		fmt.Printf("%v\n", response.Status)
 		fmt.Printf("%v\n", response.StatusCode)
+		fmt.Printf("%v\n", response.Header)
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(response.Body)
 		bodyString := buf.String()
