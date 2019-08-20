@@ -68,6 +68,10 @@ func main() {
 		panic(err)
 	}
 	head := h.Name().Short() //current branch name
+	if head == "master" {
+		fmt.Fprintln(os.Stderr,"You are on master so not making a pull request")
+		return
+	}
 	fmt.Println("Current Branch" + head)
 
 	list, err := repo.Remotes()
@@ -104,7 +108,7 @@ func main() {
 		panic(err)
 	}
 	// os.ModeNamedPipe
-	if stat.Mode()&os.ModeNamedPipe != 0 {
+	if (stat.Mode()&os.ModeNamedPipe) == 0 {
 		fmt.Println("The command is intended to work with pipes.")
 		fmt.Println("Usage: github-make-pull <title>")
 		return
