@@ -1,5 +1,14 @@
 ## Github Make Pull
-Assuming you are in a git repo with "origin" remote pointing to a github repo, and you are on a branch that has been pushed
+Opens a pull request on GitHub against "origin/master"
+
+This command will abort operation if it detects that any of the following are true:
++ no title argument is specified
++ there is no piped input for the pull request description
++ the current topic branch has local commits that are not yet pushed to its upstream  branch on the remote.
++ the current repository has uncommitted files
+
+Assuming you are in a git repo with "origin" remote pointing to a github repo, you've committed your changes,
+ and you are on a branch that has been pushed:
 ```
 $ github-make-pull <title>
 ```

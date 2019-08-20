@@ -16,11 +16,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"os/user"
-
 )
 
 /*
@@ -63,13 +62,12 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 		fmt.Fprintln(os.Stderr, "You are on master so not making a pull request")
 		os.Exit(1)
 	}
-	fmt.Println("Current Branch" + headBranchName)
 
 	// ... retrieving the commit object
 	headCommit, err := repo.CommitObject(headRef.Hash())
 	CheckIfError(err)
 
-	revision := "origin/"+headBranchName
+	revision := "origin/" + headBranchName
 
 	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
 	CheckIfError(err)
@@ -103,7 +101,6 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	w, err := repo.Worktree()
 	CheckIfError(err)
 	// We cannot trust verification of the current status of the worktree using the method Status.
-	// Any globally ignored files will
 
 	cfg, err := parseGitConfig()
 	if err != nil {
@@ -129,7 +126,7 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 		os.Exit(1)
 	}
 
-	fmt.Println("Current Org/Repo: %s/%s branch %s", organizationName,repoName, headBranchName)
+	fmt.Println("Current Org/Repo: %s/%s branch: %s", organizationName, repoName, headBranchName)
 	return
 }
 
@@ -148,10 +145,9 @@ func main() {
 	//repos, _, _ := client.Repositories.List(ctx, "StevenACoffman", nil)
 	//fmt.Println(repos)
 
-
 	repoName, organizationName, headBranchName := checkGitStatus()
 
-	title := "Snappier title"
+	title := ""
 
 	args := getArgs()
 	if len(args) == 0 {
@@ -160,30 +156,28 @@ func main() {
 	} else {
 		title = args[0]
 	}
-	fmt.Println("title:" + title)
+
+	prDescription := ""
 	stat, err := os.Stdin.Stat()
 	if err != nil {
 		panic(err)
 	}
-	// os.ModeNamedPipe
+
 	if (stat.Mode() & os.ModeNamedPipe) == 0 {
-		fmt.Println("The command is intended to work with pipes.")
-		fmt.Println("Usage: github-make-pull <title>")
-		return
+		fmt.Println("The command is intended to work with pipes but didn't get one. Assuming empty pull request description")
+	} else {
+		stdInBytes, _ := ioutil.ReadAll(os.Stdin)
+		prDescription = string(stdInBytes)
 	}
-	stdInBytes, _ := ioutil.ReadAll(os.Stdin)
-	prDescription := string(stdInBytes)
-	fmt.Println("PR Description:" + prDescription)
 
 	fmt.Println("title:" + title)
 	fmt.Println("head:" + headBranchName)
-	fmt.Println("body:" + prDescription)
 	input := &github.NewPullRequest{Title: github.String(title), Head: github.String(headBranchName), Body: github.String(prDescription), Base: github.String("master")}
 	pull, response, err := client.PullRequests.Create(context.Background(), organizationName, repoName, input)
 
 	if err != nil {
 		if response.StatusCode == 422 {
-			fmt.Println("Got Unprocessessable Entity Error")
+			fmt.Println("Got Unprocessable Entity Error")
 		}
 		fmt.Errorf("PullRequests.Create returned error: %v", err)
 		fmt.Printf("%v\n", response.Status)
@@ -219,8 +213,6 @@ func getEnvOrDie(key string) string {
 	}
 	panic("No github personal access token in env " + key)
 }
-
-
 
 func parseGitConfig() (*config.Config, error) {
 	cfg := config.NewConfig()
@@ -293,7 +285,6 @@ func expandTilde(path string) (string, error) {
 	}
 	return "/" + filepath.Join(paths...), nil
 }
-
 
 func openbrowser(url string) {
 	var err error
