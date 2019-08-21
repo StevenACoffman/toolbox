@@ -18,23 +18,15 @@ The things that get moved here are something I use regularly, and __*don't*__ wa
 
 ## Tools
 
-#### What The Issue: Find the Jira issue from the topic
+### JIRA to Markdown (J2M)
+```
+cat ./cmd/j2m/j2m.jira | j2m
+```
+
+### What the Issue? (Lookup JIRA ticket)
 ```
 $ wti CORE-5339
-
 ```
-
-#### Eureka Lookup: Lookup URL for an instance using Eureka Service discovery
-```
-$ eureka-lookup search3 prod
-```
-
-#### Generate TLS Cert
-
-```
-$ generate-tls-cert --host=localhost,127.0.0.1
-```
-
 ### Github Make Personal Access Token
 ```
 $ github-make-token "My token for triaging pull requests"
@@ -45,12 +37,14 @@ $ github-make-token "My token for triaging pull requests"
 $ github-make-pull "My title for pull requests"
 ```
 
-### JIRA to Markdown (J2M)
+### Eureka Lookup: Lookup URL for an instance using Eureka Service discovery
 ```
-cat ./cmd/j2m/j2m.jira | j2m
+$ eureka-lookup search3 prod
 ```
 
-### What the Issue? (Lookup JIRA ticket)
+### Generate TLS Cert
+
 ```
-$ wti CORE-5339
+$ generate-tls-cert --host=localhost,127.0.0.1
 ```
+
