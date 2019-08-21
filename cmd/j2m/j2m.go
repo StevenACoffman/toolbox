@@ -30,6 +30,12 @@ func main() {
 		str = string(stdInBytes)
 	}
 
+	str = JiraToMD(str)
+
+	fmt.Printf("%s\n", str)
+}
+
+func JiraToMD(str string) string {
 	jirations := []Jiration{
 		{ // UnOrdered Lists
 			re: regexp.MustCompile(`(?m)^[ \t]*(\*+)\s+`),
@@ -54,72 +60,72 @@ func main() {
 			},
 		},
 		{ // Bold
-			re: regexp.MustCompile(`\*(\S.*)\*`),
-			repl :"**$1**",
+			re:   regexp.MustCompile(`\*(\S.*)\*`),
+			repl: "**$1**",
 		},
 		{ // Italic
-			re: regexp.MustCompile(`\_(\S.*)\_`),
-			repl :"*$1*",
+			re:   regexp.MustCompile(`\_(\S.*)\_`),
+			repl: "*$1*",
 		},
 		{ // Monospaced text
-			re: regexp.MustCompile(`\{\{([^}]+)\}\}`),
-			repl :"`$1`",
+			re:   regexp.MustCompile(`\{\{([^}]+)\}\}`),
+			repl: "`$1`",
 		},
 		{ // Citations (buggy)
-			re: regexp.MustCompile(`\?\?((?:.[^?]|[^?].)+)\?\?`),
-			repl :"<cite>$1</cite>",
+			re:   regexp.MustCompile(`\?\?((?:.[^?]|[^?].)+)\?\?`),
+			repl: "<cite>$1</cite>",
 		},
 		{ // Inserts
-			re: regexp.MustCompile(`\+([^+]*)\+`),
-			repl :"<ins>$1</ins>",
+			re:   regexp.MustCompile(`\+([^+]*)\+`),
+			repl: "<ins>$1</ins>",
 		},
 		{ // Superscript
-			re: regexp.MustCompile(`\^([^^]*)\^`),
-			repl :"<sup>$1</sup>",
+			re:   regexp.MustCompile(`\^([^^]*)\^`),
+			repl: "<sup>$1</sup>",
 		},
 		{ // Subscript
-			re: regexp.MustCompile(`~([^~]*)~`),
-			repl :"<sub>$1</sub>",
+			re:   regexp.MustCompile(`~([^~]*)~`),
+			repl: "<sub>$1</sub>",
 		},
 		{ // Strikethrough
-			re: regexp.MustCompile(`(\s+)-(\S+.*?\S)-(\s+)`),
-			repl :"$1~~$2~~$3",
+			re:   regexp.MustCompile(`(\s+)-(\S+.*?\S)-(\s+)`),
+			repl: "$1~~$2~~$3",
 		},
 		{ // Code Block
-			re: regexp.MustCompile(`\{code(:([a-z]+))?([:|]?(title|borderStyle|borderColor|borderWidth|bgColor|titleBGColor)=.+?)*\}`),
-			repl :"```$2",
+			re:   regexp.MustCompile(`\{code(:([a-z]+))?([:|]?(title|borderStyle|borderColor|borderWidth|bgColor|titleBGColor)=.+?)*\}`),
+			repl: "```$2",
 		},
 		{ // Code Block End
-			re: regexp.MustCompile(`{code}`),
-			repl :"```",
+			re:   regexp.MustCompile(`{code}`),
+			repl: "```",
 		},
 		{ // Pre-formatted text
-			re: regexp.MustCompile(`{noformat}`),
-			repl :"```",
+			re:   regexp.MustCompile(`{noformat}`),
+			repl: "```",
 		},
 		{ // Un-named Links
-			re: regexp.MustCompile(`\[([^|]+)\]`),
-			repl :"<$1>",
+			re:   regexp.MustCompile(`\[([^|]+)\]`),
+			repl: "<$1>",
 		},
 		{ // Images
-			re: regexp.MustCompile(`!(.+)!`),
-			repl :"![]($1)",
+			re:   regexp.MustCompile(`!(.+)!`),
+			repl: "![]($1)",
 		},
 		{ // Named Links
-			re: regexp.MustCompile(`\[(.+?)\|(.+)\]`),
-			repl :"[$1]($2)",
+			re:   regexp.MustCompile(`\[(.+?)\|(.+)\]`),
+			repl: "[$1]($2)",
 		},
 		{ // Single Paragraph Blockquote
-			re: regexp.MustCompile(`(?m)^bq\.\s+`),
-			repl :"> ",
+			re:   regexp.MustCompile(`(?m)^bq\.\s+`),
+			repl: "> ",
 		},
 		{ // Remove color: unsupported in md
-			re: regexp.MustCompile(`(?m)\{color:[^}]+\}(.*)\{color\}`),
-			repl :"$1",
+			re:   regexp.MustCompile(`(?m)\{color:[^}]+\}(.*)\{color\}`),
+			repl: "$1",
 		},
 		{ // panel into table
-			re: regexp.MustCompile(`(?m)\{panel:title=([^}]*)\}\n?(.*?)\n?\{panel\}`),
-			repl :"\n| $1 |\n| --- |\n| $2 |",
+			re:   regexp.MustCompile(`(?m)\{panel:title=([^}]*)\}\n?(.*?)\n?\{panel\}`),
+			repl: "\n| $1 |\n| --- |\n| $2 |",
 		},
 		{ //table header
 			re: regexp.MustCompile(`(?m)^[ \t]*((?:\|\|.*?)+\|\|)[ \t]*$`),
@@ -133,23 +139,21 @@ func main() {
 			},
 		},
 		{ // remove leading-space of table headers and rows
-			re: regexp.MustCompile(`(?m)^[ \t]*\|`),
-			repl :"|",
+			re:   regexp.MustCompile(`(?m)^[ \t]*\|`),
+			repl: "|",
 		},
 	}
-
 	for _, jiration := range jirations {
 		switch v := jiration.repl.(type) {
 		case string:
 			str = jiration.re.ReplaceAllString(str, v)
 		case func([]string) string:
-			str = ReplaceAllStringSubmatchFunc(jiration.re, str,v)
+			str = ReplaceAllStringSubmatchFunc(jiration.re, str, v)
 		default:
 			fmt.Printf("I don't know about type %T!\n", v)
 		}
 	}
-
-	fmt.Printf("%s\n", str)
+	return str
 }
 
 // https://gist.github.com/elliotchance/d419395aa776d632d897

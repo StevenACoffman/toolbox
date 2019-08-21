@@ -45,11 +45,23 @@ func getArgs() []string {
 	return args
 }
 
+func getEnvOrDie(key string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	panic("You must set your environment variable " + key)
+}
+
 func main() {
 	jiraUserId := getEnv("JIRA_LOGIN", "login")
 	jiraPassword := getEnv("JIRA_PASSWORD", "password")
-	jiraBaseURL := getEnv("JIRA_BASE_URL", "https://jira.jstor.org")
+	jiraBaseURL := getEnvOrDie("JIRA_BASE_URL", "https://jira.jstor.org")
 	jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
+	jiraUserId := getEnvOrDie("JIRA_LOGIN")
+	jiraPassword := getEnvOrDie("JIRA_PASSWORD")
+	jiraBaseURL := getEnvOrDie("JIRA_BASE_URL")
+	jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
+
 	ticket := ""
 	args := getArgs()
 
