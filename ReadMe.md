@@ -39,3 +39,23 @@ $ generate-tls-cert --host=localhost,127.0.0.1
 ```
 $ github-make-token "My token for triaging pull requests"
 ```
+
+### Github Make Pull Request
+```
+$ github-make-pull "My title for pull requests"
+```
+
+### JIRA to Markdown (J2M)
+```
+cat cmd/j2m/j2m.jira | j2m
+```
+
+### JIRA to Markdown (J2M)
+```
+cat cmd/j2m/j2m.jira | j2m
+```
+
+### What the Issue? (Lookup JIRA ticket)
+```
+$ wti CORE-5339
+```

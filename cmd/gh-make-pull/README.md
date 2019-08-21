@@ -10,7 +10,7 @@ This command will abort operation if it detects that any of the following are tr
 Assuming you are in a git repo with "origin" remote pointing to a github repo, you've committed your changes,
  and you are on a branch that has been pushed:
 ```
-$ github-make-pull <title>
+$ gh-make-pull <title>
 ```
 
 ### How does it work

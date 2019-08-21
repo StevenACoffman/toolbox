@@ -151,8 +151,8 @@ func main() {
 
 	args := getArgs()
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: github-make-pull <title>")
-		panic(errors.New("Usage: github-make-pull <title>"))
+		fmt.Fprintln(os.Stderr, "Usage: gh-make-pull <title>")
+		panic(errors.New("Usage: gh-make-pull <title>"))
 	} else {
 		title = args[0]
 	}

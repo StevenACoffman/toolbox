@@ -40,8 +40,8 @@ func main() {
 	note := "Demonstration Personal Access Token"
 
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr,"Usage: github-make-token <token-description>")
-		panic(errors.New("Usage: github-make-token <token-description>"))
+		fmt.Fprintln(os.Stderr,"Usage: gh-make-token <token-description>")
+		panic(errors.New("Usage: gh-make-token <token-description>"))
 	} else {
 		note = args[0]
 	}
