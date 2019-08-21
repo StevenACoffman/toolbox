@@ -20,14 +20,12 @@ This fun toy was heavily inspired by the J2M project by Fokke Zandbergen (http:/
 * Un-named links
 * Named links
 * Monospaced Text
-* ~~Citations~~ (currently Buggy)
+* ~~Citations~~ (currently kinda buggy)
 * Strikethroughs
 * Inserts
 * Superscripts
 * Subscripts
 * Single-paragraph blockquotes
-
-Not done:
 * Tables
 * Panels 
 

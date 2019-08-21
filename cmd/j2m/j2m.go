@@ -30,13 +30,13 @@ func main() {
 	re1 := regexp.MustCompile(`(?m)^[ \t]*(\*+)\s+`)
 	first := ReplaceAllStringSubmatchFunc(re1, str, func(groups []string) string {
 		_, stars := groups[0], groups[1]
-		return strings.Repeat("  ", len(stars)) + "* "
+		return strings.Repeat("  ", len(stars)-1) + "* "
 	})
 	// Ordered Lists
 	re2 := regexp.MustCompile(`(?m)^[ \t]*(#+)\s+`)
 	second := ReplaceAllStringSubmatchFunc(re2, first, func(groups []string) string {
 		_, nums := groups[0], groups[1]
-		return strings.Repeat("  ", len(nums)) + "1. "
+		return strings.Repeat("  ", len(nums)-1) + "1. "
 	})
 	// Headers 1-6
 	re3 := regexp.MustCompile(`(?m)^h([0-6])\.(.*)$`)
@@ -62,7 +62,7 @@ func main() {
 	re8 := regexp.MustCompile(`\+([^+]*)\+`)
 	eighth := re8.ReplaceAllString(seventh, "<ins>$1</ins>")
 	// Superscript
-	re9:= regexp.MustCompile(`/\^([^^]*)\^`)
+	re9:= regexp.MustCompile(`\^([^^]*)\^`)
 	ninth := re9.ReplaceAllString(eighth, "<sup>$1</sup>")
 
 	// Subscript
@@ -85,7 +85,43 @@ func main() {
 	re15:= regexp.MustCompile(`\[([^|]+)\]`)
 	fifteenth := re15.ReplaceAllString(fourteenth, "<$1>")
 
-	fmt.Printf("%s\n", fifteenth)
+
+	// Images
+	re16:= regexp.MustCompile(`!(.+)!`)
+	sixteenth := re16.ReplaceAllString(fifteenth, "![]($1)")
+	// Named Links
+	re17:= regexp.MustCompile(`\[(.+?)\|(.+)\]`)
+	seventeenth := re17.ReplaceAllString(sixteenth, "[$1]($2)")
+
+	// Single Paragraph Blockquote
+	re18:= regexp.MustCompile(`(?m)^bq\.\s+`)
+	eighteenth := re18.ReplaceAllString(seventeenth, "> ")
+
+	// Remove color: unsupported in md
+	re19:= regexp.MustCompile(`(?m)\{color:[^}]+\}(.*)\{color\}`)
+	nineteenth := re19.ReplaceAllString(eighteenth, "$1")
+
+	// panel into table
+	re20:= regexp.MustCompile(`(?m)\{panel:title=([^}]*)\}\n?(.*?)\n?\{panel\}`)
+	twentieth := re20.ReplaceAllString(nineteenth, "\n| $1 |\n| --- |\n| $2 |")
+
+	// table header
+	re21:= regexp.MustCompile(`(?m)^[ \t]*((?:\|\|.*?)+\|\|)[ \t]*$`)
+	twentyfirst := ReplaceAllStringSubmatchFunc(re21, twentieth, func(groups []string) string {
+		_, headers := groups[0], groups[1]
+		reBarred:= regexp.MustCompile(`\|\|`)
+
+		singleBarred :=  reBarred.ReplaceAllString(headers, "|")
+		fillerRe := regexp.MustCompile(`\|[^|]+`)
+		return "\n" + singleBarred + "\n" + fillerRe.ReplaceAllString(singleBarred, "| --- ")
+	})
+
+	// remove leading-space of table headers and rows
+	re22:= regexp.MustCompile(`(?m)^[ \t]*\|`)
+	twentysecond := re22.ReplaceAllString(twentyfirst, "|")
+
+
+	fmt.Printf("%s\n", twentysecond)
 }
 
 // https://gist.github.com/elliotchance/d419395aa776d632d897
