@@ -47,12 +47,7 @@ $ github-make-pull "My title for pull requests"
 
 ### JIRA to Markdown (J2M)
 ```
-cat cmd/j2m/j2m.jira | j2m
-```
-
-### JIRA to Markdown (J2M)
-```
-cat cmd/j2m/j2m.jira | j2m
+cat ./cmd/j2m/j2m.jira | j2m
 ```
 
 ### What the Issue? (Lookup JIRA ticket)

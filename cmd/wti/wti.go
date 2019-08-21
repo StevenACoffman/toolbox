@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,6 +21,18 @@ type JIRAResponse struct {
 	} `json:"fields"`
 }
 
+// no args please
+func getFlags() []string {
+	var args []string
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-"){
+			args = append(args,arg)
+		}
+	}
+	return args
+}
+
+
 // no flags please, also I don't need the program name
 func getArgs() []string {
 	var args []string
@@ -35,9 +48,11 @@ func getArgs() []string {
 func main() {
 	jiraUserId := getEnv("JIRA_LOGIN", "login")
 	jiraPassword := getEnv("JIRA_PASSWORD", "password")
-	jiraBaseURL := getEnv("JIRA_BASE_URL", "https://jira.jstor.org/rest/api/2/issue/")
+	jiraBaseURL := getEnv("JIRA_BASE_URL", "https://jira.jstor.org")
+	jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
 	ticket := "CORE-5339"
 	args := getArgs()
+
 
 	if len(args) == 0 {
 		fmt.Fprintln(os.Stderr,"Usage: lookup <appname> <environment> --list=true")
@@ -46,17 +61,20 @@ func main() {
 		ticket = args[0]
 	}
 
-	if len(args) == 0 {
+	resolvesFlag := flag.Bool("resolves", false, "insert resolves link")
 
-	}
-	url := jiraBaseURL+ticket
+	flag.CommandLine.Parse(getFlags())
+
+	url := jiraBaseURL+jiraAPIURI+ticket
 
 	jiraClient, req := BuildRequest(url, jiraUserId, jiraPassword)
 
 	jiraResponse := GetJiraResponse(jiraClient, req)
 
-	fmt.Println(jiraResponse.Key)
-	fmt.Println(jiraResponse.Fields.Summary)
+	fmt.Printf("%s - %s\n\n", jiraResponse.Key, jiraResponse.Fields.Summary)
+	if *resolvesFlag {
+		fmt.Printf("Resolves [%s|%s%s%s]\n\n", jiraResponse.Key, jiraBaseURL,"/browse/", jiraResponse.Key)
+	}
 	fmt.Println(jiraResponse.Fields.Description)
 }
 
