@@ -50,13 +50,13 @@ func main() {
 	jiraPassword := getEnv("JIRA_PASSWORD", "password")
 	jiraBaseURL := getEnv("JIRA_BASE_URL", "https://jira.jstor.org")
 	jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
-	ticket := "CORE-5339"
+	ticket := ""
 	args := getArgs()
 
 
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr,"Usage: lookup <appname> <environment> --list=true")
-		panic(errors.New("Usage: lookup <appname> <environment> --list=true"))
+		fmt.Fprintln(os.Stderr,"Usage: wti <ticket> --resolves=true")
+		panic(errors.New("Usage: wti <ticket> --resolves=true"))
 	} else {
 		ticket = args[0]
 	}
