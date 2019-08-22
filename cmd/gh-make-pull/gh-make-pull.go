@@ -124,7 +124,7 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Did you forget to git push -u origin %s? The current branch %s has no upstream branch.\n", headBranchName, headBranchName)
+		fmt.Fprintf(os.Stderr, "Did you forget to git push --set-upstream origin %s? The current branch %s has no upstream branch.\n", headBranchName, headBranchName)
 		os.Exit(1)
 	}
 
