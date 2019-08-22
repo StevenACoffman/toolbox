@@ -19,8 +19,9 @@ The things that get moved here are something I use regularly, and __*don't*__ wa
 ## Tools
 
 They work together, so you can do:
-
-
+```
+$ wti $(git rev-parse --abbrev-ref HEAD) -resolves | j2m | gh-make-pull
+```
 
 ### JIRA to Markdown (J2M)
 ```

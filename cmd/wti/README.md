@@ -8,8 +8,8 @@ This utility will pull out the summary and description for a given JIRA ticket a
 ```
 $ export JIRA_LOGIN=login
 $ export JIRA_PASSWORD=password
-$ JIRA_BASE_URL=https://jira.example.com
-$ JIRA_API_URI=/rest/api/2/issue/
+$ export JIRA_BASE_URL=https://jira.example.com
+$ export JIRA_API_URI=/rest/api/2/issue/
 $ wti CORE-5339
 CORE-5339 - Logbuffer should recover automatically from kafka transients
 
