@@ -51,7 +51,6 @@ func main() {
 	//fmt.Println(repos)
 
 	repoName, organizationName, headBranchName := checkGitStatus()
-
 	title := ""
 
 	args := getArgs()
@@ -66,7 +65,7 @@ func main() {
 	}
 
 	if (stat.Mode() & os.ModeNamedPipe) == 0 {
-		fmt.Println("The command is intended to work with pipes but didn't get one. Assuming empty pull request description")
+		fmt.Println("The command is intended to work with piped stdin but didn't get input. Assuming empty pull request description")
 	} else {
 		stdInBytes, _ := ioutil.ReadAll(os.Stdin)
 		prDescription = string(stdInBytes)
@@ -74,7 +73,6 @@ func main() {
 			title, prDescription = extract(prDescription)
 		}
 	}
-
 	fmt.Println("title:" + title)
 	fmt.Println("head:" + headBranchName)
 	input := &github.NewPullRequest{Title: github.String(title), Head: github.String(headBranchName), Body: github.String(prDescription), Base: github.String("master")}
@@ -94,18 +92,16 @@ func main() {
 		fmt.Printf("%v\n", bodyString)
 		fmt.Printf("%v\n", response.String())
 	}
+
 	if pull != nil {
 		fmt.Printf("Created Pull Request Successfully. Opening browser for %v\n", pull.HTMLURL)
 		openbrowser(*pull.HTMLURL)
 	} else {
 		fmt.Println("Pull request was not created")
 	}
-
 }
 
-
 func checkGitStatus() (repoName, organizationName, headBranchName string) {
-
 	dir, err := os.Getwd()
 	checkIfError(err)
 
@@ -124,18 +120,19 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	// ... retrieving the commit object
 	headCommit, err := repo.CommitObject(headRef.Hash())
 	checkIfError(err)
-
 	revision := "origin/" + headBranchName
 
 	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
-	checkIfError(err)
-	revCommit, err := repo.CommitObject(*revHash)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Did you forget to git push --set-upstream origin %s? The current branch %s has no upstream branch.\n", headBranchName, headBranchName)
+		os.Exit(1)
+	}
 
+	revCommit, err := repo.CommitObject(*revHash)
 	checkIfError(err)
 
 	isAncestor, err := headCommit.IsAncestor(revCommit)
 	checkIfError(err)
-
 	if !isAncestor {
 		fmt.Fprintf(os.Stderr, "Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n", revision)
 		os.Exit(1)
@@ -143,7 +140,6 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	list, err := repo.Remotes()
 	checkIfError(err)
-
 	for _, r := range list {
 		rc := r.Config()
 		if rc.Name == "origin" {
@@ -155,7 +151,6 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 			organizationName = remoteUrlChunks[len(remoteUrlChunks)-1]
 		}
 	}
-
 	w, err := repo.Worktree()
 	checkIfError(err)
 
@@ -187,7 +182,7 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 		os.Exit(1)
 	}
 
-	fmt.Println("Current Org/Repo: %s/%s branch: %s", organizationName, repoName, headBranchName)
+	fmt.Printf("Current Org/Repo: %s/%s branch: %s\n", organizationName, repoName, headBranchName)
 	return
 }
 

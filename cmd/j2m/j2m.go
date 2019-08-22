@@ -104,7 +104,7 @@ func JiraToMD(str string) string {
 			repl: "```",
 		},
 		{ // Un-named Links
-			re:   regexp.MustCompile(`\[([^|]+)\]`),
+			re:   regexp.MustCompile(`(?U)\[([^|]+)\]`),
 			repl: "<$1>",
 		},
 		{ // Images
