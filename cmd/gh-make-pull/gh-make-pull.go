@@ -4,7 +4,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -18,6 +17,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -34,101 +34,6 @@ type NewPullRequest struct {
 }
 */
 
-// no flags please
-func getArgs() []string {
-	var args []string
-	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-") {
-			continue
-		}
-		args = append(args, arg)
-	}
-	return args
-}
-
-func checkGitStatus() (repoName, organizationName, headBranchName string) {
-
-	dir, err := os.Getwd()
-	CheckIfError(err)
-
-	repo, err := git.PlainOpen(dir)
-	CheckIfError(err)
-
-	headRef, err := repo.Head()
-	CheckIfError(err)
-
-	headBranchName = headRef.Name().Short()
-	if headBranchName == "master" {
-		fmt.Fprintln(os.Stderr, "You are on master so not making a pull request")
-		os.Exit(1)
-	}
-
-	// ... retrieving the commit object
-	headCommit, err := repo.CommitObject(headRef.Hash())
-	CheckIfError(err)
-
-	revision := "origin/" + headBranchName
-
-	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
-	CheckIfError(err)
-	revCommit, err := repo.CommitObject(*revHash)
-
-	CheckIfError(err)
-
-	isAncestor, err := headCommit.IsAncestor(revCommit)
-	CheckIfError(err)
-
-	if !isAncestor {
-		fmt.Fprintf(os.Stderr, "Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n", revision)
-		os.Exit(1)
-	}
-
-	list, err := repo.Remotes()
-	CheckIfError(err)
-
-	for _, r := range list {
-		rc := r.Config()
-		if rc.Name == "origin" {
-			segments := strings.Split(rc.URLs[0], "/")
-			basename := segments[len(segments)-1]
-
-			repoName = strings.TrimSuffix(basename, filepath.Ext(basename))
-			remoteUrlChunks := strings.Split(segments[len(segments)-2], ":")
-			organizationName = remoteUrlChunks[len(remoteUrlChunks)-1]
-		}
-	}
-
-	w, err := repo.Worktree()
-	CheckIfError(err)
-	// We cannot trust verification of the current status of the worktree using the method Status.
-
-	cfg, err := parseGitConfig()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Could not read ~/.gitconfig: "+err.Error())
-		return
-	}
-
-	excludesfile := getExcludesFile(cfg)
-	if excludesfile == "" {
-		fmt.Fprintln(os.Stderr, "Could not get core.excludesfile from ~/.gitconfig")
-		return
-	}
-
-	ps, err := parseExcludesFile(excludesfile)
-	CheckIfError(err)
-	w.Excludes = append(ps, w.Excludes...)
-
-	status, err := w.Status()
-	CheckIfError(err)
-
-	if !status.IsClean() {
-		fmt.Fprintln(os.Stderr, "Did you forget to git commit or git add -A? You have modified or untracked files so not making a pull request")
-		os.Exit(1)
-	}
-
-	fmt.Println("Current Org/Repo: %s/%s branch: %s", organizationName, repoName, headBranchName)
-	return
-}
 
 func main() {
 	ctx := context.Background()
@@ -150,10 +55,7 @@ func main() {
 	title := ""
 
 	args := getArgs()
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: gh-make-pull <title>")
-		panic(errors.New("Usage: gh-make-pull <title>"))
-	} else {
+	if len(args) == 1 {
 		title = args[0]
 	}
 
@@ -168,6 +70,9 @@ func main() {
 	} else {
 		stdInBytes, _ := ioutil.ReadAll(os.Stdin)
 		prDescription = string(stdInBytes)
+		if title == "" {
+			title, prDescription = extract(prDescription)
+		}
 	}
 
 	fmt.Println("title:" + title)
@@ -198,27 +103,113 @@ func main() {
 
 }
 
-func CheckIfError(err error) {
-	if err == nil {
+
+func checkGitStatus() (repoName, organizationName, headBranchName string) {
+
+	dir, err := os.Getwd()
+	checkIfError(err)
+
+	repo, err := git.PlainOpen(dir)
+	checkIfError(err)
+
+	headRef, err := repo.Head()
+	checkIfError(err)
+
+	headBranchName = headRef.Name().Short()
+	if headBranchName == "master" {
+		fmt.Fprintln(os.Stderr, "You are on master so not making a pull request")
+		os.Exit(1)
+	}
+
+	// ... retrieving the commit object
+	headCommit, err := repo.CommitObject(headRef.Hash())
+	checkIfError(err)
+
+	revision := "origin/" + headBranchName
+
+	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
+	checkIfError(err)
+	revCommit, err := repo.CommitObject(*revHash)
+
+	checkIfError(err)
+
+	isAncestor, err := headCommit.IsAncestor(revCommit)
+	checkIfError(err)
+
+	if !isAncestor {
+		fmt.Fprintf(os.Stderr, "Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n", revision)
+		os.Exit(1)
+	}
+
+	list, err := repo.Remotes()
+	checkIfError(err)
+
+	for _, r := range list {
+		rc := r.Config()
+		if rc.Name == "origin" {
+			segments := strings.Split(rc.URLs[0], "/")
+			basename := segments[len(segments)-1]
+
+			repoName = strings.TrimSuffix(basename, filepath.Ext(basename))
+			remoteUrlChunks := strings.Split(segments[len(segments)-2], ":")
+			organizationName = remoteUrlChunks[len(remoteUrlChunks)-1]
+		}
+	}
+
+	w, err := repo.Worktree()
+	checkIfError(err)
+
+	// Because it normally does not include global git config
+	// We cannot trust verification of the current status of the worktree using the method Status, without this mess
+
+	cfg, err := parseGitConfig()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Could not read ~/.gitconfig: "+err.Error())
 		return
 	}
 
-	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
-	os.Exit(1)
+	excludesfile := getExcludesFile(cfg)
+	if excludesfile == "" {
+		fmt.Fprintln(os.Stderr, "Could not get core.excludesfile from ~/.gitconfig")
+		return
+	}
+
+	ps, err := parseExcludesFile(excludesfile)
+	checkIfError(err)
+	w.Excludes = append(ps, w.Excludes...)
+
+	status, err := w.Status()
+	checkIfError(err)
+
+	if !status.IsClean() {
+		fmt.Fprintln(os.Stderr, "Did you forget to git commit or git add -A? You have modified or untracked files so not making a pull request")
+		os.Exit(1)
+	}
+
+	fmt.Println("Current Org/Repo: %s/%s branch: %s", organizationName, repoName, headBranchName)
+	return
 }
 
-func getEnvOrDie(key string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
+func extract(content string) (title, body string) {
+	nl := regexp.MustCompile(`\r?\n`)
+	content = nl.ReplaceAllString(content, "\n")
+
+	parts := strings.SplitN(content, "\n\n", 2)
+	if len(parts) >= 1 {
+		title = strings.TrimSpace(strings.Replace(parts[0], "\n", " ", -1))
 	}
-	panic("No github personal access token in env " + key)
+	if len(parts) >= 2 {
+		body = strings.TrimSpace(parts[1])
+	}
+
+	return
 }
 
 func parseGitConfig() (*config.Config, error) {
 	cfg := config.NewConfig()
 
 	usr, err := user.Current()
-	CheckIfError(err)
+	checkIfError(err)
 
 	b, err := ioutil.ReadFile(usr.HomeDir + "/.gitconfig")
 	if err != nil {
@@ -304,3 +295,32 @@ func openbrowser(url string) {
 	}
 
 }
+
+func checkIfError(err error) {
+	if err == nil {
+		return
+	}
+
+	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
+	os.Exit(1)
+}
+
+func getEnvOrDie(key string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	panic("No github personal access token in env " + key)
+}
+
+// no flags please
+func getArgs() []string {
+	var args []string
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-") {
+			continue
+		}
+		args = append(args, arg)
+	}
+	return args
+}
+
