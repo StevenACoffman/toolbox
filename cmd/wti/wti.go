@@ -53,10 +53,6 @@ func getEnvOrDie(key string) string {
 }
 
 func main() {
-	jiraUserId := getEnv("JIRA_LOGIN", "login")
-	jiraPassword := getEnv("JIRA_PASSWORD", "password")
-	jiraBaseURL := getEnvOrDie("JIRA_BASE_URL", "https://jira.jstor.org")
-	jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
 	jiraUserId := getEnvOrDie("JIRA_LOGIN")
 	jiraPassword := getEnvOrDie("JIRA_PASSWORD")
 	jiraBaseURL := getEnvOrDie("JIRA_BASE_URL")
