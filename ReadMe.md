@@ -18,6 +18,10 @@ The things that get moved here are something I use regularly, and __*don't*__ wa
 
 ## Tools
 
+They work together, so you can do:
+
+
+
 ### JIRA to Markdown (J2M)
 ```
 cat ./cmd/j2m/j2m.jira | j2m
@@ -47,4 +51,5 @@ $ eureka-lookup search3 prod
 ```
 $ generate-tls-cert --host=localhost,127.0.0.1
 ```
+
 
