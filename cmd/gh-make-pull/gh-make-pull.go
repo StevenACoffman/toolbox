@@ -161,6 +161,7 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	// Because it normally does not include global git config
 	// We cannot trust verification of the current status of the worktree using the method Status, without this mess
+	// If it doesn't work just assume everything is clean.
 
 	cfg, err := parseGitConfig()
 	if err != nil {

@@ -1,10 +1,14 @@
 ## Github Make Pull
-Opens a pull request on GitHub against "origin/master"
+Opens a pull request on GitHub against "origin/master" for the branch you are on.
+
+If you execute it with no arguments, it expects to receive input on stdin (pipe) the pull request title and description.
+The text up to the first blank line on stdin is treated as the pull request title, and the rest is used as pull request description in Markdown format.
+
+If executed with an argument, it uses that as the title, and any stdin is just the decription.
 
 This command will abort operation if it detects that any of the following are true:
-+ no title argument is specified
-+ there is no piped input for the pull request description
-+ the current topic branch has local commits that are not yet pushed to its upstream  branch on the remote.
++ The current branch is master.
++ the current topic branch has local commits that are not yet pushed to its upstream branch on the remote.
 + the current repository has uncommitted files
 
 Assuming you are in a git repo with "origin" remote pointing to a github repo, you've committed your changes,
