@@ -16,12 +16,15 @@ bin/gh-make-token:
 bin/j2m:
 	go build -o bin/j2m cmd/j2m/j2m.go
 
+bin/jp:
+	go build -o bin/jp cmd/jira-pull/jp.go
+
 bin/wti:
 	go build -o bin/wti cmd/wti/wti.go
 
-all: bin/eureka-lookup bin/generate-tls-cert bin/gh-make-pull bin/gh-make-token bin/j2m bin/wti
+all: bin/eureka-lookup bin/generate-tls-cert bin/gh-make-pull bin/gh-make-token bin/j2m bin/jp bin/wti
 
-install: bin/eureka-lookup bin/generate-tls-cert bin/gh-make-pull bin/gh-make-token bin/j2m bin/wti
+install: bin/eureka-lookup bin/generate-tls-cert bin/gh-make-pull bin/gh-make-token bin/j2m bin/jp bin/wti
 	cp bin/* ~/bin
 
 clean:

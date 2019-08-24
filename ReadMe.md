@@ -18,7 +18,16 @@ The things that get moved here are something I use regularly, and __*don't*__ wa
 
 ## Tools
 
-They work together, so you can do:
+
+### JP - JIRA Pull
+Create a github pull request populated with data from Jira ticket
+
+```
+$ jp
+```
+If you are on a topic branch that matches a jira ticket, and you have committed and pushed your changes, this will convert the jira ticket's Description from Atlassian WikiMarkUp syntax to Github Markdown, and open a new Github pull request with that title and description.
+
+Equivalent to:
 ```
 $ wti $(git rev-parse --abbrev-ref HEAD) -resolves | j2m | gh-make-pull
 ```
