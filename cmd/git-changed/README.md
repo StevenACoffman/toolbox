@@ -1,37 +1,43 @@
 ### git-changed
 Equivalent to `git diff --name-only`
 
-This is pretty handy in a monorepo, as are:
+### Notes
+
+Identifying what has changed, especially in a monorepo, is a critical first step.
+
+If one or more source files are altered, which services must be rebuilt, retested, and redeployed? If multiple services must be deployed, what overall deployment strategy or sequence is necessary? What happens when something needs to be rolled back for only a single service?
+
++ Some organizations use configuration to assign specific changes to specific services/actions.
++ Some organizations introspectively identify dependency trees (this is typically language specific).
++ Some organizations use subtree splits and git submodules to provide atomic, independently deployable view of services.
+
+This is a common problem, without a single standard solution. The different strategies that have been applied to this problem space can be seen by the variety of tools people have produced. I'm focussing on the ecosystem in Go.
+
+##### Other Monorepo tools
 
 + [GTA](https://github.com/jphines/gta) - Go Test Auto - [Digital Ocean uses this](https://blog.digitalocean.com/cthulhu-organizing-go-code-in-a-scalable-repo/)
++ [detect-changed-services](https://github.com/devops-recipes/app-mono/blob/master/detect-changed-services.sh) - [Shippable uses this](http://blog.shippable.com/build-test-and-deploy-applications-independently-from-a-monorepo)
++ [golang-monorepo](https://github.com/flowerinthenight/golang-monorepo) - [Mobingi uses this](https://tech.mobingi.com/2018/09/25/ouchan-monorepo.html)
 + [Affected](https://github.com/jharlap/affected)
 + [sowhatsnew](https://github.com/manifoldco/sowhatsnew/)
 + [mono-meta](https://github.com/davidae/mono-meta)
 + [knega](https://github.com/kristofferlind/knega)
-+ [mona](https://github.com/davidsbond/mona)
-+ [detect-changed-services](https://github.com/devops-recipes/app-mono/blob/master/detect-changed-services.sh) - [Shippable uses this](http://blog.shippable.com/build-test-and-deploy-applications-independently-from-a-monorepo)
-+ [golang-monorepo](https://github.com/flowerinthenight/golang-monorepo) - [Mobingi uses this](https://tech.mobingi.com/2018/09/25/ouchan-monorepo.html)
++ [mona](https://github.com/uw-labs/mona)
 + [baur](https://github.com/simplesurance/baur)
-+ [monorepo-operator](https://github.com/SimonBaeumer/monorepo-operator)
++ [monorepo-operator](https://github.com/SimonBaeumer/monorepo-operator) - subtree splits
 + [mbt](https://github.com/mbtproject/mbt)
 + [drone-tree-config](https://github.com/bitsbeats/drone-tree-config) (github pr based dir diff)
 + [monobuild](https://github.com/charypar/monobuild)
 + [transplant](https://github.com/codeactual/transplant)
 + [modmerge](https://github.com/brendanjryan/modmerge)
 
-```shell script
-git rev-parse --show-toplevel
-git log -n 1 --merges --pretty=format:%p
-# -n number, --max-count=<number>
-#      Limit the number of commits to output.
-# --merges
-#      Print only merge commits. This is exactly the same as --min-parents=2.
-# --pretty[=<format>], --format=<format>
-#          Pretty-print the contents of the commit logs in a given format, where <format> can be one of oneline,
-#          short, medium, full, fuller, email, raw and format:<string>. See the "PRETTY FORMATS" section for
-#          some additional details for each format. When omitted, the format defaults to medium.
-# '%p' abbreviated parent hashes
-```
+### Big tools for big companies based on Google's Blaze
+
++ [Google - Bazel](https://github.com/bazelbuild/bazel)
++ [Thoughtworks - Please](https://github.com/thought-machine/please) - in Go!
++ [Facebook - Buck](https://github.com/facebook/buck)
++ [Twitter - Pants](https://github.com/pantsbuild/pants) - in python
++ [Buildifier for BUILD language](https://github.com/bazelbuild/buildtools)
 
 ### Why Monorepo? Why not?
 
@@ -58,9 +64,17 @@ In a Multirepo layout, each project has its own Version Control System (e.g. git
 + Development culture. Sharing knowledge becomes easier when everyone is working on the same codebase and can talk about the code at the same level. Growing pains are shared, helping promote a sense of empathy among the team.
 + Flexible architecture. The process of isolating (or merging) code in a Monorepo is less costly than in a Multirepo. There's no need to set up a whole new repository, configuration and deployment. This makes it easier to revert bad abstractions or over-engineered parts of a system.
 
-### Big tools for big companies based on Google's Blaze
-+ [Google - Bazel](https://github.com/bazelbuild/bazel)
-+ [Facebook - Buck](https://github.com/facebook/buck)
-+ [Twitter - Pants](https://github.com/pantsbuild/pants) - in python
-+ [Thoughtworks - Please](https://github.com/thought-machine/please) - in Go!
-+ [Buildifier for BUILD language](https://github.com/bazelbuild/buildtools)
+### Some more git stuff
+```shell script
+git rev-parse --show-toplevel
+git log -n 1 --merges --pretty=format:%p
+# -n number, --max-count=<number>
+#      Limit the number of commits to output.
+# --merges
+#      Print only merge commits. This is exactly the same as --min-parents=2.
+# --pretty[=<format>], --format=<format>
+#          Pretty-print the contents of the commit logs in a given format, where <format> can be one of oneline,
+#          short, medium, full, fuller, email, raw and format:<string>. See the "PRETTY FORMATS" section for
+#          some additional details for each format. When omitted, the format defaults to medium.
+# '%p' abbreviated parent hashes
+```
