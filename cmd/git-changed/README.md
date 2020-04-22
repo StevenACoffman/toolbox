@@ -3,6 +3,8 @@ Equivalent to `git diff --name-only`
 
 ### Notes
 
+In addition to the [normal](https://github.com/StevenACoffman/cicd-demo) [CI/CDD concerns](https://docs.google.com/presentation/d/1h62_B_2eiuOE1iVIFpEm0C5f5MaJQ1N-zLKJM6FhxmA/edit?usp=sharing), Monorepos have additional complications.
+
 Identifying what has changed, especially in a monorepo, is a critical first step.
 
 If one or more source files are altered, which services must be rebuilt, retested, and redeployed? If multiple services must be deployed, what overall deployment strategy or sequence is necessary? What happens when something needs to be rolled back for only a single service?
@@ -12,6 +14,8 @@ If one or more source files are altered, which services must be rebuilt, reteste
 + Some organizations use subtree splits and git submodules to provide atomic, independently deployable view of services.
 
 This is a common problem, without a single standard solution. The different strategies that have been applied to this problem space can be seen by the variety of tools people have produced. I'm focussing on the ecosystem in Go.
+
+
 
 ##### Other Monorepo tools
 
@@ -45,6 +49,7 @@ This is a common problem, without a single standard solution. The different stra
 + [Matt Klein - Monorepos: Please don’t!](https://medium.com/@mattklein123/monorepos-please-dont-e9a279be011b)
 + [Adam Jacob - Monorepos: Please do!](https://medium.com/@adamhjk/monorepo-please-do-3657e08a4b70)
 + [Getting to Know Monorepo](https://www.strv.com/blog/getting-to-know-monorepo-engineering)
++ [Why We Should Not Return to Monolithic Repositories](https://gist.github.com/technosophos/9c706b1ef10f42014a06)
 
 > The default behavior of a polyrepo is isolation — that’s the whole point. The default behavior of a monorepo is shared responsibility and visibility — that’s the whole point.
 
