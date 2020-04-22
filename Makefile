@@ -7,9 +7,30 @@ bin/eureka-lookup:
 bin/generate-tls-cert:
 	go build -o bin/generate-tls-cert cmd/generate-tls-cert/generate.go
 
-all: bin/eureka-lookup bin/generate-tls-cert
+bin/gh-make-pull:
+	go build -o bin/gh-make-pull cmd/gh-make-pull/gh-make-pull.go
 
-install: bin/eureka-lookup bin/generate-tls-cert
+bin/gh-make-token:
+	go build -o bin/gh-make-token cmd/gh-make-token/gh-make-token.go
+
+bin/j2m:
+	go build -o bin/j2m cmd/j2m/j2m.go
+
+bin/jp:
+	go build -o bin/jp cmd/jira-pull/jp.go
+
+bin/gofiles:
+	go build -o bin/gofiles cmd/gofiles/gofiles.go
+
+bin/wti:
+	go build -o bin/wti cmd/wti/wti.go
+
+bin/slackit:
+	go build -o bin/slackit cmd/slackit/slackit.go
+
+all: bin/eureka-lookup bin/generate-tls-cert bin/gh-make-pull bin/gh-make-token bin/j2m bin/jp bin/gofiles bin/wti bin/slackit
+
+install: bin/eureka-lookup bin/generate-tls-cert bin/gh-make-pull bin/gh-make-token bin/j2m bin/jp bin/gofiles bin/wti bin/slackit
 	cp bin/* ~/bin
 
 clean:
