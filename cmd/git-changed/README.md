@@ -2,14 +2,15 @@
 Equivalent to `git diff --name-only`
 
 This is pretty handy in a monorepo, as are:
-+ [GTA](https://github.com/jphines/gta)
+
++ [GTA](https://github.com/jphines/gta) - Go Test Auto - [Digital Ocean uses this](https://blog.digitalocean.com/cthulhu-organizing-go-code-in-a-scalable-repo/)
 + [Affected](https://github.com/jharlap/affected)
 + [sowhatsnew](https://github.com/manifoldco/sowhatsnew/)
 + [mono-meta](https://github.com/davidae/mono-meta)
 + [knega](https://github.com/kristofferlind/knega)
 + [mona](https://github.com/davidsbond/mona)
-+ [detect-changed-services](https://github.com/devops-recipes/app-mono/blob/master/detect-changed-services.sh)
-+ [golang-monorepo](https://github.com/flowerinthenight/golang-monorepo)
++ [detect-changed-services](https://github.com/devops-recipes/app-mono/blob/master/detect-changed-services.sh) - [Shippable uses this](http://blog.shippable.com/build-test-and-deploy-applications-independently-from-a-monorepo)
++ [golang-monorepo](https://github.com/flowerinthenight/golang-monorepo) - [Mobingi uses this](https://tech.mobingi.com/2018/09/25/ouchan-monorepo.html)
 + [baur](https://github.com/simplesurance/baur)
 + [monorepo-operator](https://github.com/SimonBaeumer/monorepo-operator)
 + [mbt](https://github.com/mbtproject/mbt)
@@ -20,7 +21,7 @@ This is pretty handy in a monorepo, as are:
 
 ```shell script
 git rev-parse --show-toplevel
-git log -n 1 --merges --pretty=format:%p 
+git log -n 1 --merges --pretty=format:%p
 # -n number, --max-count=<number>
 #      Limit the number of commits to output.
 # --merges
@@ -39,7 +40,7 @@ git log -n 1 --merges --pretty=format:%p
 + [Adam Jacob - Monorepos: Please do!](https://medium.com/@adamhjk/monorepo-please-do-3657e08a4b70)
 + [Getting to Know Monorepo](https://www.strv.com/blog/getting-to-know-monorepo-engineering)
 
-> The default behavior of a polyrepo is isolation — that’s the whole point. The default behavior of a monorepo is shared responsibility and visibility — that’s the whole point. 
+> The default behavior of a polyrepo is isolation — that’s the whole point. The default behavior of a monorepo is shared responsibility and visibility — that’s the whole point.
 
 As an engineer, just trying to get things done in the short term, a monorepo sucks, and polyrepos rule.
 As a manager, does causing friction force conversations and promote a better long term result?
@@ -50,7 +51,7 @@ In a Multirepo layout, each project has its own Version Control System (e.g. git
 + Onboarding new developers is easier. The smaller the codebase, the easier it is to get familiar with it.
 + Simpler tooling. Projects typically do one thing and use a single language, so tooling - CI/CD and configuration - is as simple as it gets.
 
-Monorepos benefits:
+##### Monorepos benefits:
 
 + Easier to update shared code. Updating a common piece of code and all the places where it is used can be done in a single step - a single commit. This operation is known as an atomic commit.
 + Better discoverability. Monorepos gives us a 360° view of the codebase. This makes actions like estimating the impact of a change much easier to do. You can also leverage tools such as a global Find & Replace for quick refactors.
@@ -61,5 +62,5 @@ Monorepos benefits:
 + [Google - Bazel](https://github.com/bazelbuild/bazel)
 + [Facebook - Buck](https://github.com/facebook/buck)
 + [Twitter - Pants](https://github.com/pantsbuild/pants) - in python
-+ [Thoughtworks - Please](https://github.com/thought-machine/please)
++ [Thoughtworks - Please](https://github.com/thought-machine/please) - in Go!
 + [Buildifier for BUILD language](https://github.com/bazelbuild/buildtools)
