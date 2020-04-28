@@ -12,10 +12,9 @@ If one or more source files are altered, which services must be rebuilt, reteste
 + Some organizations use configuration to assign specific changes to specific services/actions.
 + Some organizations introspectively identify dependency trees (this is typically language specific).
 + Some organizations use subtree splits and git submodules to provide atomic, independently deployable view of services.
++ Some organizations use monorepos for apps, but put shared code (libraries) in other repos
 
-This is a common problem, without a single standard solution. The different strategies that have been applied to this problem space can be seen by the variety of tools people have produced. I'm focussing on the ecosystem in Go.
-
-
+Monorepos pose some common problem, without a single standard solution. The different strategies that have been applied to this problem space can be seen by the variety of tools people have produced. I'm focusing on the ecosystem in Go.
 
 ##### Other Monorepo tools
 
@@ -24,6 +23,7 @@ This is a common problem, without a single standard solution. The different stra
 + [golang-monorepo](https://github.com/flowerinthenight/golang-monorepo) - [Mobingi uses this](https://tech.mobingi.com/2018/09/25/ouchan-monorepo.html)
 + [Affected](https://github.com/jharlap/affected)
 + [sowhatsnew](https://github.com/manifoldco/sowhatsnew/)
++ [tainted](https://github.com/kynrai/tainted)
 + [mono-meta](https://github.com/davidae/mono-meta)
 + [knega](https://github.com/kristofferlind/knega)
 + [mona](https://github.com/uw-labs/mona)
@@ -34,6 +34,8 @@ This is a common problem, without a single standard solution. The different stra
 + [monobuild](https://github.com/charypar/monobuild)
 + [transplant](https://github.com/codeactual/transplant)
 + [modmerge](https://github.com/brendanjryan/modmerge)
+
+For other monorepo things that are not Go centric, check out [Awesome Monorepo](https://github.com/korfuri/awesome-monorepo)
 
 ### Big tools for big companies based on Google's Blaze
 
