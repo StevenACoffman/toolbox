@@ -15,6 +15,9 @@ func main() {
 		if err == nil {
 			now = now.AddDate(0, 0, weeks*7)
 		}
+	} else { // usually we just want last week
+		weeks := -1
+		now = now.AddDate(0, 0, weeks*7)
 	}
 	last := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	for ; last.Weekday() != time.Monday; last = last.AddDate(0, 0, -1) {}
