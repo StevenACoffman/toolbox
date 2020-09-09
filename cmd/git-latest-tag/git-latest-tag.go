@@ -1,10 +1,10 @@
 package main
 
 import (
-"gopkg.in/src-d/go-git.v4/plumbing"
-"gopkg.in/src-d/go-git.v4/plumbing/object"
+"github.com/go-git/go-git/v5/plumbing"
+"github.com/go-git/go-git/v5/plumbing/object"
 
-git "gopkg.in/src-d/go-git.v4"
+git "github.com/go-git/go-git/v5"
 )
 
 func GetCurrentBranchFromRepository(repository *git.Repository) (string, error) {

@@ -85,3 +85,16 @@ git log -n 1 --merges --pretty=format:%p
 #          some additional details for each format. When omitted, the format defaults to medium.
 # '%p' abbreviated parent hashes
 ```
+### Some Build System Theory
+The [Build Systems à la Carte](https://www.microsoft.com/en-us/research/publication/build-systems-la-carte/) paper proposes splitting build systems into two components:
+
++ Rebuilders decide when to rebuild a particular key (file).
++ Schedulers decide how to rebuild multiple keys - handling dependencies while maintaining correctness and efficiency.
+
+Schedulers come in 3 flavors (see Section 4):
+
++ Topological use a simple topological sort to determine the order of building keys. They are limited to static dependencies - if new dependencies are discovered during the build process, they cannot be correctly added to the build graph.
++ Restarting schedulers start building a particular key, then, as dependencies are discovered, abort building that key. Then the discovered dependency(ies) are built, after which the original key’s task is restarted. This allows dynamic dependencies, but at the cost of repeating parts of the build process.
++ Suspending schedulers also start building a particular key. When a dependency is discovered, instead of aborting the current task, they suspend it, go and build the dependency, then resume the task. This allows dynamic dependencies without repeating work.
+
+From [A Future is a Suspending Scheduler](https://nikhilism.com/post/2020/futures-suspending-scheduler/)
