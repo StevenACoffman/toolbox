@@ -8,7 +8,9 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-func GetCurrentCommitFromRepository(repository *git.Repository) (string, error) {
+func GetAppEngineVersionFromRepository(
+	repository *git.Repository,
+) (string, error) {
 	headRef, err := repository.Head()
 	if err != nil {
 		return "", err
@@ -19,23 +21,35 @@ func GetCurrentCommitFromRepository(repository *git.Repository) (string, error) 
 	if commitErr != nil {
 		return headSha, commitErr
 	}
-	when := commit.Author.When
-	format := "060201-1504-"
+
+	when := commit.Committer.When
+	format := "060102-1504-"
 	datetimeString := when.Format(format)
 
 	return datetimeString + headSha[0:12], nil
 }
 
+// Equivalent of git show -s --abbrev=12 --format=%cd-%h HEAD
+// --date=format:'%y%m%d-%H%M'
+// Wed Jul 29 22:18:29 2020 -0700 53a7c033dc4f8f10f3122f03b5dd22cc7ec2fadf
+// 202907-2218-53a7c033dc4f
 func main() {
-	CheckArgs("<repoPath> <rev> <path>")
-	repoPath := os.Args[1]
+
+	var repoPath string
+	if len(os.Args) < 2 {
+		var pathErr error
+		repoPath, pathErr = os.Getwd()
+		CheckIfError(pathErr)
+	} else {
+		repoPath = os.Args[1]
+		CheckArgs("<repoPath>")
+	}
 
 	repo, err := git.PlainOpen(repoPath)
 	CheckIfError(err)
-	appEngineFormat, formatErr := GetCurrentCommitFromRepository(repo)
+	appEngineFormat, formatErr := GetAppEngineVersionFromRepository(repo)
 	CheckIfError(formatErr)
 	fmt.Println(appEngineFormat)
-
 }
 
 // CheckIfError should be used to naively panics if an error is not nil.
