@@ -1,4 +1,4 @@
-///usr/bin/env go run "$0" "$@" ; exit "$?"
+// 2>/dev/null;/usr/bin/env go run "$0" "$@" ; exit "$?"
 package main
 
 import (
@@ -30,8 +30,6 @@ import (
 // golines -m 80 --shorten-comments -w <file>
 // golangci-lint run --fix <file>
 func main() {
-	fmt.Println("git-changed ", len(os.Args))
-
 	dir, err := os.Getwd()
 	CheckIfError(err)
 
@@ -59,24 +57,31 @@ func main() {
 	}
 
 	for _, filePath := range changedFiles {
-		if strings.HasSuffix(filePath, ".go") {
-			cmd := exec.Command("gofumpt", "-s", "-w", "-l", filePath)
-			execCommandOnFilePath(cmd, "gofumpt", filePath)
-			cmd = exec.Command("gofumports", "-w", "-l", filePath)
-			execCommandOnFilePath(cmd, "gofumports", filePath)
-			cmd = exec.Command(
-				"golines",
-				"-m",
-				"80",
-				"--shorten-comments",
-				"-w",
-				filePath,
-			)
-			execCommandOnFilePath(cmd, "golines", filePath)
-
-			cmd = exec.Command("golangci-lint", "run", "--fix", filePath)
-			execCommandOnFilePath(cmd, "golangci-lint", filePath)
+		if !strings.HasSuffix(filePath, ".go") {
+			continue
 		}
+		cmd := exec.Command("gofumpt", "-s", "-w", "-l", filePath)
+		cmd.Dir = dir
+		execCommandOnFilePath(cmd, "gofumpt", filePath)
+
+		cmd = exec.Command("gofumports", "-w", "-l", filePath)
+		cmd.Dir = dir
+		execCommandOnFilePath(cmd, "gofumports", filePath)
+
+		cmd = exec.Command(
+			"golines",
+			"-m",
+			"80",
+			"--shorten-comments",
+			"-w",
+			filePath,
+		)
+		cmd.Dir = dir
+		execCommandOnFilePath(cmd, "golines", filePath)
+
+		cmd = exec.Command("golangci-lint", "run", "--fix", filePath)
+		cmd.Dir = dir
+		execCommandOnFilePath(cmd, "golangci-lint", filePath)
 	}
 }
 
@@ -89,9 +94,6 @@ func commitFileChanges(repo *git.Repository) ([]string, error) {
 		}
 		// ... retrieving the head commit object
 		hash = headRef.Hash()
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		arg2 := os.Args[2] // optional descendent sha
 		hash = plumbing.NewHash(arg2)
@@ -104,33 +106,33 @@ func commitFileChanges(repo *git.Repository) ([]string, error) {
 
 	var prevCommit *object.Commit
 	if len(os.Args) < 2 {
-		parent, err := commit.Parent(0)
-		if err != nil {
-			return nil, err
+		parent, argErr := commit.Parent(0)
+		if argErr != nil {
+			return nil, argErr
 		}
 		prevCommit = parent
 	} else {
 		prevSha := os.Args[1] // prevSha
 		prevHash := plumbing.NewHash(prevSha)
 
-		parent, err := repo.CommitObject(prevHash)
-		if err != nil {
-			return nil, err
+		parent, commitErr := repo.CommitObject(prevHash)
+		if commitErr != nil {
+			return nil, commitErr
 		}
 		prevCommit = parent
 	}
 
-	//fmt.Println(
-	// 	"Previous SHA1:" + prevCommit.Hash.String() + " Current SHA1:" +
-	// commit.Hash.String(),
-	//)
+	//  fmt.Println(
+	//   	"Previous SHA1:" + prevCommit.Hash.String() + " Current SHA1:" +
+	//   commit.Hash.String(),
+	//  )
 
-	isAncestor, err := commit.IsAncestor(prevCommit)
-	if err != nil {
-		return nil, err
-	}
+	//  isAncestor, err := commit.IsAncestor(prevCommit)
+	//  if err != nil {
+	//  	return nil, err
+	//  }
 
-	fmt.Printf("Is the prevCommit an ancestor of commit? : %v\n", isAncestor)
+	// fmt.Printf("Is the prevCommit an ancestor of commit? : %v\n", isAncestor)
 
 	commitChangedFiles, err := changesBetweenCommits(commit, prevCommit)
 	if err != nil {
@@ -267,56 +269,6 @@ func CheckIfError(err error) {
 	os.Exit(1)
 }
 
-// Info should be used to describe the example commands that are about to run.
-func Info(format string, args ...interface{}) {
-	fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
-}
-
-// Warning should be used to display a warning
-func Warning(format string, args ...interface{}) {
-	fmt.Printf("\x1b[36;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
-}
-
-func excludeIgnoredChanges(
-	w *git.Worktree,
-	changes merkletrie.Changes,
-) merkletrie.Changes {
-	patterns, err := gitignore.ReadPatterns(w.Filesystem, nil)
-	if err != nil {
-		return changes
-	}
-
-	patterns = append(patterns, w.Excludes...)
-
-	if len(patterns) == 0 {
-		return changes
-	}
-
-	m := gitignore.NewMatcher(patterns)
-
-	var res merkletrie.Changes
-	for _, ch := range changes {
-		var path []string
-		for _, n := range ch.To {
-			path = append(path, n.Name())
-		}
-		if len(path) == 0 {
-			for _, n := range ch.From {
-				path = append(path, n.Name())
-			}
-		}
-		if len(path) != 0 {
-			isDir := (len(ch.To) > 0 && ch.To.IsDir()) ||
-				(len(ch.From) > 0 && ch.From.IsDir())
-			if m.Match(path, isDir) {
-				continue
-			}
-		}
-		res = append(res, ch)
-	}
-	return res
-}
-
 func parseGitConfig() (*config.Config, error) {
 	cfg := config.NewConfig()
 
@@ -328,8 +280,8 @@ func parseGitConfig() (*config.Config, error) {
 		return nil, err
 	}
 
-	if err := cfg.Unmarshal(b); err != nil {
-		return nil, err
+	if unmarshalErr := cfg.Unmarshal(b); unmarshalErr != nil {
+		return nil, unmarshalErr
 	}
 
 	return cfg, err
