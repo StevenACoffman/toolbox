@@ -92,15 +92,6 @@ linters-settings:
       - github.com/stretchr/testify/assert
       - github.com/stretchr/testify/require
 
-    # TODO(benkraft_: Are these actually getting used?
-    packages-with-error-messages:
-      github.com/sirupsen/logrus: "Use pkg/lib/log for logging"
-      log: "Use pkg/lib/log for logging"
-      cloud.google.com/go/datastore: "Use pkg/gcloud/datastore for datastore access"
-      github.com/stretchr/testify/suite: "Use dev/khantest for test suites"
-      github.com/stretchr/testify/assert: "Use suite.Assert() instead of testify/assert"
-      github.com/stretchr/testify/require: "Use suite.Require() instead of testify/require"
-
   lll:
     line-length: 100
     tab-width: 4

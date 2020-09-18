@@ -24,11 +24,16 @@ import (
 // that commit and it's parent
 // Laundry with two git SHA1 arguments will include the modified files between
 // those commits.
+// Laundry with no arguments will just include uncommitted files BUT...
+// If there are no uncommitted files, it will assume you meant the last commit.
+//
 // Laundry filters these to Go files, and for each executes:
 // gofumpt -s -w -l <file>
 // gofumports -w -l <file>
 // golines -m 80 --shorten-comments -w <file>
 // golangci-lint run --fix <file>
+//
+// And that is how you do the "laundry"
 func main() {
 	dir, err := os.Getwd()
 	CheckIfError(err)
