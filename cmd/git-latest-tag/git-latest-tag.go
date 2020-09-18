@@ -1,13 +1,15 @@
 package main
 
 import (
-"github.com/go-git/go-git/v5/plumbing"
-"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 
-git "github.com/go-git/go-git/v5"
+	git "github.com/go-git/go-git/v5"
 )
 
-func GetCurrentBranchFromRepository(repository *git.Repository) (string, error) {
+func GetCurrentBranchFromRepository(
+	repository *git.Repository,
+) (string, error) {
 	branchRefs, err := repository.Branches()
 	if err != nil {
 		return "", err
@@ -35,7 +37,9 @@ func GetCurrentBranchFromRepository(repository *git.Repository) (string, error) 
 	return currentBranchName, nil
 }
 
-func GetCurrentCommitFromRepository(repository *git.Repository) (string, error) {
+func GetCurrentCommitFromRepository(
+	repository *git.Repository,
+) (string, error) {
 	headRef, err := repository.Head()
 	if err != nil {
 		return "", err
@@ -85,5 +89,4 @@ func GetLatestTagFromRepository(repository *git.Repository) (string, error) {
 }
 
 func main() {
-
 }

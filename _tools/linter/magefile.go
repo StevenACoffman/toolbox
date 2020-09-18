@@ -30,7 +30,7 @@ var (
 	TestArgs = "-v -race -coverprofile=coverage.out -covermode=atomic ./..."
 )
 
-//TODO: warning or error instead of just empty return
+// TODO: warning or error instead of just empty return
 func moduleName() string {
 	d, err := os.Getwd()
 	if err != nil {

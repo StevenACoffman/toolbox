@@ -39,7 +39,7 @@ func main() {
 
 	CheckIfError(err)
 
-	fmt.Printf("Is the HEAD an IsAncestor of origin/master? : %v\n",isAncestor)
+	fmt.Printf("Is the HEAD an IsAncestor of origin/master? : %v\n", isAncestor)
 }
 
 // CheckIfError should be used to naively panics if an error is not nil.

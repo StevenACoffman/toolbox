@@ -7,12 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -25,6 +19,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 type JIRAResponse struct {
@@ -35,37 +36,46 @@ type JIRAResponse struct {
 	} `json:"fields"`
 }
 
-
 type Jiration struct {
 	re   *regexp.Regexp
 	repl interface{}
 }
 
 func main() {
-	//jiraUserId := getEnv("JIRA_LOGIN", "login")
-	//jiraPassword := getEnv("JIRA_PASSWORD", "password")
-	//jiraBaseURL := getEnvOrDie("JIRA_BASE_URL", "https://jira.jstor.org")
-	//jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
+	// jiraUserId := getEnv("JIRA_LOGIN", "login")
+	// jiraPassword := getEnv("JIRA_PASSWORD", "password")
+	// jiraBaseURL := getEnvOrDie("JIRA_BASE_URL", "https://jira.jstor.org")
+	// jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
 	jiraUserId := getEnvOrDie("JIRA_LOGIN")
 	jiraPassword := getEnvOrDie("JIRA_PASSWORD")
 	jiraBaseURL := getEnvOrDie("JIRA_BASE_URL")
 	jiraAPIURI := getEnv("JIRA_API_URI", "/rest/api/2/issue/")
-
 
 	repoName, organizationName, ticket := checkGitStatus()
 	fmt.Println(repoName, organizationName)
 
 	flag.CommandLine.Parse(getFlags())
 
-	url := jiraBaseURL+jiraAPIURI+ticket
+	url := jiraBaseURL + jiraAPIURI + ticket
 
 	jiraClient, req := BuildRequest(url, jiraUserId, jiraPassword)
 
 	jiraResponse := GetJiraResponse(jiraClient, req)
 
-	title := fmt.Sprintf("%s - %s", jiraResponse.Key, jiraResponse.Fields.Summary)
+	title := fmt.Sprintf(
+		"%s - %s",
+		jiraResponse.Key,
+		jiraResponse.Fields.Summary,
+	)
 
-	prDescription := fmt.Sprintf("Resolves [%s|%s%s%s]\n\n%s\n", jiraResponse.Key, jiraBaseURL,"/browse/", jiraResponse.Key,jiraResponse.Fields.Description)
+	prDescription := fmt.Sprintf(
+		"Resolves [%s|%s%s%s]\n\n%s\n",
+		jiraResponse.Key,
+		jiraBaseURL,
+		"/browse/",
+		jiraResponse.Key,
+		jiraResponse.Fields.Description,
+	)
 	prDescription = JiraToMD(prDescription)
 	ctx := context.Background()
 	token := getEnvOrDie("GO_JIRA_PULL_REQUEST_AUTH_TOKEN")
@@ -76,9 +86,18 @@ func main() {
 	tc := oauth2.NewClient(ctx, ts)
 
 	client := github.NewClient(tc)
-	input := &github.NewPullRequest{Title: github.String(title), Head: github.String(ticket), Body: github.String(prDescription), Base: github.String("master")}
-	pull, response, err := client.PullRequests.Create(context.Background(), organizationName, repoName, input)
-
+	input := &github.NewPullRequest{
+		Title: github.String(title),
+		Head:  github.String(ticket),
+		Body:  github.String(prDescription),
+		Base:  github.String("master"),
+	}
+	pull, response, err := client.PullRequests.Create(
+		context.Background(),
+		organizationName,
+		repoName,
+		input,
+	)
 	if err != nil {
 		if response.StatusCode == 422 {
 			fmt.Println("Got Unprocessable Entity Error")
@@ -95,7 +114,10 @@ func main() {
 	}
 
 	if pull != nil {
-		fmt.Printf("Created Pull Request Successfully. Opening browser for %v\n", pull.HTMLURL)
+		fmt.Printf(
+			"Created Pull Request Successfully. Opening browser for %v\n",
+			pull.HTMLURL,
+		)
 		openBrowser(*pull.HTMLURL)
 	} else {
 		fmt.Println("Pull request was not created")
@@ -106,19 +128,18 @@ func main() {
 func getFlags() []string {
 	var args []string
 	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-"){
-			args = append(args,arg)
+		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-") {
+			args = append(args, arg)
 		}
 	}
 	return args
 }
 
-
 // no flags please, also I don't need the program name
 func getArgs() []string {
 	var args []string
 	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-"){
+		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-") {
 			continue
 		}
 		args = append(args, arg)
@@ -152,7 +173,10 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	headBranchName = headRef.Name().Short()
 	if headBranchName == "master" {
-		fmt.Fprintln(os.Stderr, "You are on master so not making a pull request")
+		fmt.Fprintln(
+			os.Stderr,
+			"You are on master so not making a pull request",
+		)
 		os.Exit(1)
 	}
 
@@ -163,7 +187,12 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Did you forget to git push --set-upstream origin %s? The current branch %s has no upstream branch.\n", headBranchName, headBranchName)
+		fmt.Fprintf(
+			os.Stderr,
+			"Did you forget to git push --set-upstream origin %s? The current branch %s has no upstream branch.\n",
+			headBranchName,
+			headBranchName,
+		)
 		os.Exit(1)
 	}
 
@@ -173,7 +202,11 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	isAncestor, err := headCommit.IsAncestor(revCommit)
 	checkIfError(err)
 	if !isAncestor {
-		fmt.Fprintf(os.Stderr, "Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n", revision)
+		fmt.Fprintf(
+			os.Stderr,
+			"Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n",
+			revision,
+		)
 		os.Exit(1)
 	}
 
@@ -194,7 +227,8 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	checkIfError(err)
 
 	// Because it normally does not include global git config
-	// We cannot trust verification of the current status of the worktree using the method Status, without this mess
+	// We cannot trust verification of the current status of the worktree using
+	// the method Status, without this mess
 	// If it doesn't work just assume everything is clean.
 
 	cfg, err := parseGitConfig()
@@ -205,7 +239,10 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	excludesfile := getExcludesFile(cfg)
 	if excludesfile == "" {
-		fmt.Fprintln(os.Stderr, "Could not get core.excludesfile from ~/.gitconfig")
+		fmt.Fprintln(
+			os.Stderr,
+			"Could not get core.excludesfile from ~/.gitconfig",
+		)
 		return
 	}
 
@@ -217,13 +254,22 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	checkIfError(err)
 
 	if !status.IsClean() {
-		fmt.Fprintln(os.Stderr, "Did you forget to git commit or git add -A? You have modified or untracked files so not making a pull request")
+		fmt.Fprintln(
+			os.Stderr,
+			"Did you forget to git commit or git add -A? You have modified or untracked files so not making a pull request",
+		)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Current Org/Repo: %s/%s branch: %s\n", organizationName, repoName, headBranchName)
+	fmt.Printf(
+		"Current Org/Repo: %s/%s branch: %s\n",
+		organizationName,
+		repoName,
+		headBranchName,
+	)
 	return
 }
+
 func checkIfError(err error) {
 	if err == nil {
 		return
@@ -305,7 +351,11 @@ func expandTilde(path string) (string, error) {
 	return "/" + filepath.Join(paths...), nil
 }
 
-func BuildRequest(url string, jiraUserId string, jiraPassword string) (http.Client, *http.Request) {
+func BuildRequest(
+	url string,
+	jiraUserId string,
+	jiraPassword string,
+) (http.Client, *http.Request) {
 	jiraClient := http.Client{
 		Timeout: time.Second * 15, // Maximum of 15 secs
 	}
@@ -350,14 +400,14 @@ func JiraToMD(str string) string {
 				return strings.Repeat("  ", len(stars)-1) + "* "
 			},
 		},
-		{ //Ordered Lists
+		{ // Ordered Lists
 			re: regexp.MustCompile(`(?m)^[ \t]*(#+)\s+`),
 			repl: func(groups []string) string {
 				_, nums := groups[0], groups[1]
 				return strings.Repeat("  ", len(nums)-1) + "1. "
 			},
 		},
-		{ //Headers 1-6
+		{ // Headers 1-6
 			re: regexp.MustCompile(`(?m)^h([0-6])\.(.*)$`),
 			repl: func(groups []string) string {
 				_, level, content := groups[0], groups[1], groups[2]
@@ -398,7 +448,9 @@ func JiraToMD(str string) string {
 			repl: "$1~~$2~~$3",
 		},
 		{ // Code Block
-			re:   regexp.MustCompile(`\{code(:([a-z]+))?([:|]?(title|borderStyle|borderColor|borderWidth|bgColor|titleBGColor)=.+?)*\}`),
+			re: regexp.MustCompile(
+				`\{code(:([a-z]+))?([:|]?(title|borderStyle|borderColor|borderWidth|bgColor|titleBGColor)=.+?)*\}`,
+			),
 			repl: "```$2",
 		},
 		{ // Code Block End
@@ -430,10 +482,12 @@ func JiraToMD(str string) string {
 			repl: "$1",
 		},
 		{ // panel into table
-			re:   regexp.MustCompile(`(?m)\{panel:title=([^}]*)\}\n?(.*?)\n?\{panel\}`),
+			re: regexp.MustCompile(
+				`(?m)\{panel:title=([^}]*)\}\n?(.*?)\n?\{panel\}`,
+			),
 			repl: "\n| $1 |\n| --- |\n| $2 |",
 		},
-		{ //table header
+		{ // table header
 			re: regexp.MustCompile(`(?m)^[ \t]*((?:\|\|.*?)+\|\|)[ \t]*$`),
 			repl: func(groups []string) string {
 				_, headers := groups[0], groups[1]
@@ -441,7 +495,10 @@ func JiraToMD(str string) string {
 
 				singleBarred := reBarred.ReplaceAllString(headers, "|")
 				fillerRe := regexp.MustCompile(`\|[^|]+`)
-				return "\n" + singleBarred + "\n" + fillerRe.ReplaceAllString(singleBarred, "| --- ")
+				return "\n" + singleBarred + "\n" + fillerRe.ReplaceAllString(
+					singleBarred,
+					"| --- ",
+				)
 			},
 		},
 		{ // remove leading-space of table headers and rows
@@ -463,7 +520,11 @@ func JiraToMD(str string) string {
 }
 
 // https://gist.github.com/elliotchance/d419395aa776d632d897
-func ReplaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]string) string) string {
+func ReplaceAllStringSubmatchFunc(
+	re *regexp.Regexp,
+	str string,
+	repl func([]string) string,
+) string {
 	result := ""
 	lastIndex := 0
 
@@ -487,7 +548,11 @@ func openBrowser(url string) {
 	case "linux":
 		err = exec.Command("xdg-open", url).Start()
 	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		err = exec.Command(
+			"rundll32",
+			"url.dll,FileProtocolHandler",
+			url,
+		).Start()
 	case "darwin":
 		err = exec.Command("open", url).Start()
 	default:
@@ -496,5 +561,4 @@ func openBrowser(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-
 	filename := "/tmp/healthy"
 	var threshold float64 = 30
 	healthy := livenessProbe(filename, threshold)
@@ -23,10 +22,9 @@ func livenessProbe(filename string, threshold float64) bool {
 	now := time.Now().In(loc)
 	// get last modified time
 	file, err := os.Stat(filename)
-
 	if err != nil {
 		fmt.Println(err)
-		//if file does not exist, or is unreadable, then it should fail liveness probe
+		// if file does not exist, or is unreadable, then it should fail liveness probe
 		return false
 	}
 

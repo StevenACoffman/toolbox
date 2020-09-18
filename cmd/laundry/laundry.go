@@ -2,145 +2,254 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"os/user"
+	"path/filepath"
+	"strings"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/utils/merkletrie"
-	"io/ioutil"
-	"os"
-	"os/user"
-	"path/filepath"
-	"strings"
 )
 
-
-// Laundry always includes uncommitted files:
-// 	Unmodified         StatusCode = ' '
-//	Untracked          StatusCode = '?'
-//	Modified           StatusCode = 'M'
-//	Added              StatusCode = 'A'
-//	Deleted            StatusCode = 'D'
-//	Renamed            StatusCode = 'R'
-//	Copied             StatusCode = 'C'
-//	UpdatedButUnmerged StatusCode = 'U'
-//
+// Laundry always includes uncommitted files.
+// Laundry with one git SHA1 argument will include the modified files between
+// that commit and it's parent
+// Laundry with two git SHA1 arguments will include the modified files between
+// those commits.
+// Laundry filters these to Go files, and for each executes:
+// gofumpt -s -w -l <file>
+// gofumports -w -l <file>
+// golines -m 80 --shorten-comments -w <file>
+// golangci-lint run --fix <file>
 func main() {
 	fmt.Println("git-changed ", len(os.Args))
-
-
-	var hash plumbing.Hash
 
 	dir, err := os.Getwd()
 	CheckIfError(err)
 
 	repo, err := git.PlainOpen(dir)
+	for err != nil {
+		isRoot := dir == "/"
+		dir = filepath.Dir(dir)
+		repo, err = git.PlainOpen(dir)
+		if isRoot {
+			CheckIfError(err)
+		}
+	}
+
+	changedFiles, err := uncommittedFilePaths(repo)
 	CheckIfError(err)
 
-	w, treeErr := repo.Worktree()
-	CheckIfError(treeErr)
-
-	cfg, err := parseGitConfig()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not read ~/.gitconfig: %+v\n", err)
-		return
+	// If have no uncommitted changes, then assume you meant
+	// to look at last diff
+	// If you passed one or more git SHA1 arguments, that is
+	// pretty clear signal of intent for that!
+	if len(changedFiles) == 0 && len(os.Args) == 1 {
+		commitChangedFiles, err := commitFileChanges(repo)
+		CheckIfError(err)
+		changedFiles = append(changedFiles, commitChangedFiles...)
 	}
 
-	excludesfile := getExcludesFile(cfg)
-	if excludesfile == "" {
-		fmt.Fprintln(os.Stderr, "Could not get core.excludesfile from ~/.gitconfig")
-		return
+	for _, filePath := range changedFiles {
+		if strings.HasSuffix(filePath, ".go") {
+			cmd := exec.Command("gofumpt", "-s", "-w", "-l", filePath)
+			execCommandOnFilePath(cmd, "gofumpt", filePath)
+			cmd = exec.Command("gofumports", "-w", "-l", filePath)
+			execCommandOnFilePath(cmd, "gofumports", filePath)
+			cmd = exec.Command(
+				"golines",
+				"-m",
+				"80",
+				"--shorten-comments",
+				"-w",
+				filePath,
+			)
+			execCommandOnFilePath(cmd, "golines", filePath)
+
+			cmd = exec.Command("golangci-lint", "run", "--fix", filePath)
+			execCommandOnFilePath(cmd, "golangci-lint", filePath)
+		}
 	}
+}
 
-	ps, err := parseExcludesFile(excludesfile)
-	CheckIfError(err)
-	w.Excludes = append(ps, w.Excludes...)
-
-	status, statusErr := w.Status()
-	CheckIfError(statusErr)
-
-	for filePath, fileStatus := range status {
-
-		fmt.Print(filePath, string(fileStatus.Staging), string(fileStatus.Worktree), "\n")
-	}
-
+func commitFileChanges(repo *git.Repository) ([]string, error) {
+	var hash plumbing.Hash
 	if len(os.Args) < 3 {
 		headRef, err := repo.Head()
-		CheckIfError(err)
+		if err != nil {
+			return nil, err
+		}
 		// ... retrieving the head commit object
 		hash = headRef.Hash()
-		CheckIfError(err)
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		arg2 := os.Args[2] //optional descendent sha
+		arg2 := os.Args[2] // optional descendent sha
 		hash = plumbing.NewHash(arg2)
 	}
 
 	commit, err := repo.CommitObject(hash)
-	CheckIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var prevCommit *object.Commit
 	if len(os.Args) < 2 {
-		parent, parErr := commit.Parent(0)
-		CheckIfError(parErr)
+		parent, err := commit.Parent(0)
+		if err != nil {
+			return nil, err
+		}
 		prevCommit = parent
 	} else {
-		prevSha := os.Args[1] //prevSha
+		prevSha := os.Args[1] // prevSha
 		prevHash := plumbing.NewHash(prevSha)
 
 		parent, err := repo.CommitObject(prevHash)
-		CheckIfError(err)
+		if err != nil {
+			return nil, err
+		}
 		prevCommit = parent
 	}
 
-
-	fmt.Println("Previous SHA1:"+ prevCommit.Hash.String() + " Current SHA1:"+ commit.Hash.String())
+	//fmt.Println(
+	// 	"Previous SHA1:" + prevCommit.Hash.String() + " Current SHA1:" +
+	// commit.Hash.String(),
+	//)
 
 	isAncestor, err := commit.IsAncestor(prevCommit)
-	CheckIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Printf("Is the prevCommit an ancestor of commit? : %v\n",isAncestor)
+	fmt.Printf("Is the prevCommit an ancestor of commit? : %v\n", isAncestor)
 
+	commitChangedFiles, err := changesBetweenCommits(commit, prevCommit)
+	if err != nil {
+		return nil, err
+	}
+	return commitChangedFiles, nil
+}
+
+func changesBetweenCommits(
+	commit *object.Commit,
+	prevCommit *object.Commit,
+) ([]string, error) {
+	var changedFiles []string
 	currentTree, err := commit.Tree()
-	CheckIfError(err)
-
+	if err != nil {
+		return nil, err
+	}
 
 	prevTree, err := prevCommit.Tree()
-	CheckIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	patch, err := currentTree.Patch(prevTree)
-	CheckIfError(err)
-	fmt.Println("----- Patch Stats ------")
+	if err != nil {
+		return nil, err
+	}
+	// fmt.Println("----- Patch Stats ------")
 
-	var changedFiles []string
 	for _, fileStat := range patch.Stats() {
-		fmt.Println(fileStat.Name)
-		changedFiles = append(changedFiles,fileStat.Name)
+		// fmt.Println(fileStat.Name)
+		changedFiles = append(changedFiles, fileStat.Name)
 	}
 
 	changes, err := currentTree.Diff(prevTree)
-	CheckIfError(err)
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Println("----- Changes -----")
+	// fmt.Println("----- Changes -----")
 	for _, change := range changes {
-
 		// Ignore deleted files
 		action, err := change.Action()
-		CheckIfError(err)
+		if err != nil {
+			return nil, err
+		}
 		if action == merkletrie.Delete {
-			//fmt.Println("Skipping delete")
+			// fmt.Println("Skipping delete")
 			continue
 		}
 
 		// Get list of involved files
 		name := getChangeName(change)
-		fmt.Println(name)
+		// fmt.Println(name)
+		changedFiles = append(changedFiles, name)
+	}
+
+	changedFiles = unique(changedFiles)
+	return changedFiles, nil
+}
+
+func execCommandOnFilePath(cmd *exec.Cmd, commandName, filePath string) {
+	var errout bytes.Buffer
+	cmd.Stderr = &errout
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if exitError.ExitCode() != 0 {
+				outString := out.String()
+				errString := errout.String()
+				fmt.Printf("%s failed for %v\n", commandName, filePath)
+				if outString != "" {
+					fmt.Println(outString)
+				}
+				if errString != "" {
+					fmt.Fprintln(os.Stderr, errString)
+				}
+			}
+		}
 	}
 }
 
+func uncommittedFilePaths(repo *git.Repository) ([]string, error) {
+	var uncommittedFilePaths []string
+	w, treeErr := repo.Worktree()
+	CheckIfError(treeErr)
+
+	cfg, err := parseGitConfig()
+	if err != nil {
+		return nil, fmt.Errorf("could not read ~/.gitconfig: %w", err)
+	}
+
+	excludesfile := getExcludesFile(cfg)
+	if excludesfile == "" {
+		return nil, fmt.Errorf(
+			"could not get core.excludesfile from ~/.gitconfig",
+		)
+	}
+
+	ps, err := parseExcludesFile(excludesfile)
+	if err != nil {
+		return nil, err
+	}
+	w.Excludes = append(ps, w.Excludes...)
+
+	status, err := w.Status()
+	if err != nil {
+		return nil, err
+	}
+
+	for filePath := range status {
+		uncommittedFilePaths = append(uncommittedFilePaths, filePath)
+	}
+	return uncommittedFilePaths, err
+}
+
 func getChangeName(change *object.Change) string {
-	var empty = object.ChangeEntry{}
+	empty := object.ChangeEntry{}
 	if change.From != empty {
 		return change.From.Name
 	}
@@ -168,7 +277,10 @@ func Warning(format string, args ...interface{}) {
 	fmt.Printf("\x1b[36;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
 }
 
-func excludeIgnoredChanges(w *git.Worktree, changes merkletrie.Changes) merkletrie.Changes {
+func excludeIgnoredChanges(
+	w *git.Worktree,
+	changes merkletrie.Changes,
+) merkletrie.Changes {
 	patterns, err := gitignore.ReadPatterns(w.Filesystem, nil)
 	if err != nil {
 		return changes
@@ -194,7 +306,8 @@ func excludeIgnoredChanges(w *git.Worktree, changes merkletrie.Changes) merkletr
 			}
 		}
 		if len(path) != 0 {
-			isDir := (len(ch.To) > 0 && ch.To.IsDir()) || (len(ch.From) > 0 && ch.From.IsDir())
+			isDir := (len(ch.To) > 0 && ch.To.IsDir()) ||
+				(len(ch.From) > 0 && ch.From.IsDir())
 			if m.Match(path, isDir) {
 				continue
 			}
@@ -203,7 +316,6 @@ func excludeIgnoredChanges(w *git.Worktree, changes merkletrie.Changes) merkletr
 	}
 	return res
 }
-
 
 func parseGitConfig() (*config.Config, error) {
 	cfg := config.NewConfig()
@@ -275,4 +387,16 @@ func expandTilde(path string) (string, error) {
 		}
 	}
 	return "/" + filepath.Join(paths...), nil
+}
+
+func unique(sSlice []string) []string {
+	keys := make(map[string]bool)
+	var list []string
+	for _, entry := range sSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }

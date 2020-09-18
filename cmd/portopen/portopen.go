@@ -1,10 +1,12 @@
 package main
 
-import "net"
-import "fmt"
-import "flag"
-import "os"
-import "strconv"
+import (
+	"flag"
+	"fmt"
+	"net"
+	"os"
+	"strconv"
+)
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "usage: test-local-port [port number]\n")
@@ -29,8 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ln, err := net.Listen("tcp", ":" + port)
-
+	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
 		os.Exit(1)

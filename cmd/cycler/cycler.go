@@ -6,9 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/StevenACoffman/toolbox/cmd/cycler/auth"
-	"github.com/StevenACoffman/toolbox/cmd/cycler/httpdoer"
-	"github.com/sethgrid/pester"
 	"io/ioutil"
 	logger "log"
 	"net/http"
@@ -17,12 +14,15 @@ import (
 	"sort"
 	"time"
 
+	"github.com/StevenACoffman/toolbox/cmd/cycler/auth"
+	"github.com/StevenACoffman/toolbox/cmd/cycler/httpdoer"
+	"github.com/sethgrid/pester"
+
 	"github.com/rickar/cal/v2"
 	"github.com/rickar/cal/v2/us"
 )
 
 func main() {
-
 	c := cal.NewBusinessCalendar()
 	c.Name = "Khan Academy"
 	c.Description = "Default company calendar"
@@ -82,14 +82,14 @@ func main() {
 		panic(err)
 	}
 
-	//replace with what you actually have
+	// replace with what you actually have
 	jiraUserID := user.Username + "@khanacademy.org"
 	jiraPassword := os.ExpandEnv("${JIRA_API_TOKEN}")
-	//jiraBaseURL := "https://khanacademy.atlassian.net"
+	// jiraBaseURL := "https://khanacademy.atlassian.net"
 	jiraBaseURL := "http://127.0.0.1:9000"
 
 	var ticket string
-	//I don't need the program name
+	// I don't need the program name
 	args := os.Args[1:]
 
 	if len(args) == 0 {
@@ -104,12 +104,12 @@ func main() {
 	header.Set("Accept", "application/json")
 	header.Set("Content-Type", "application/json")
 	header.Set("Authorization", "Basic "+basicAuth(jiraUserID, jiraPassword))
-	//rt := auth.NewRoundTripper(http.DefaultTransport, header)
+	// rt := auth.NewRoundTripper(http.DefaultTransport, header)
 	rt := auth.NewHeaderRoundTripper(http.DefaultTransport, header)
 
-		//rt.BasicAuth(jiraUserID, jiraPassword)
+	// rt.BasicAuth(jiraUserID, jiraPassword)
 
-	//jiraClient := &http.Client{Transport: rt}
+	// jiraClient := &http.Client{Transport: rt}
 
 	jiraClient := pester.New()
 	//jiraClient.EmbedHTTPClient(authClient)
@@ -121,27 +121,33 @@ func main() {
 	jiraClient.LogHook = func(e pester.ErrEntry) { log.Println(jiraClient.FormatError(e)) }
 	jiraClient.Transport = rt
 
-
 	issue, _ := getJiraTicket(jiraClient, header, jiraBaseURL, jiraIssueURI)
 	fmt.Println(jiraClient.LogString())
 	changelog := Changelog{
-		Values:     nil,
+		Values: nil,
 	}
 	isLast := false
 	startAt := 0
 	for !isLast {
-		jiraChangelogURI := fmt.Sprintf( "%s/changelog?maxResults=100&startAt=%d&maxResults=1", jiraIssueURI, startAt)
-		currentChanges, changeErr := getJiraChangeLog(jiraClient, header, jiraBaseURL, jiraChangelogURI)
+		jiraChangelogURI := fmt.Sprintf(
+			"%s/changelog?maxResults=100&startAt=%d&maxResults=1",
+			jiraIssueURI,
+			startAt,
+		)
+		currentChanges, changeErr := getJiraChangeLog(
+			jiraClient,
+			header,
+			jiraBaseURL,
+			jiraChangelogURI,
+		)
 		fmt.Println(jiraClient.LogString())
 		if changeErr != nil {
 			fmt.Println(changeErr)
 		}
 		changelog.Values = append(changelog.Values, currentChanges.Values...)
 		isLast = currentChanges.IsLast
-		startAt = currentChanges.StartAt+currentChanges.MaxResults
+		startAt = currentChanges.StartAt + currentChanges.MaxResults
 	}
-
-
 
 	var statusChanges []StatusChange
 
@@ -158,7 +164,7 @@ func main() {
 	}
 	statusChanges = append(statusChanges, createdChange)
 
-	statusChanges = append(statusChanges,getStatusChanges(changelog)...)
+	statusChanges = append(statusChanges, getStatusChanges(changelog)...)
 
 	sort.Slice(statusChanges, func(i, j int) bool {
 		return statusChanges[i].ChangeTime.Before(statusChanges[j].ChangeTime)
@@ -170,7 +176,14 @@ func main() {
 
 	for i := range statusChanges {
 		sc := statusChanges[i]
-		log.Println("STATUS CHANGE From:", sc.FromStatus, "To:", sc.ToStatus, "On:", sc.ChangeTime)
+		log.Println(
+			"STATUS CHANGE From:",
+			sc.FromStatus,
+			"To:",
+			sc.ToStatus,
+			"On:",
+			sc.ChangeTime,
+		)
 		// last transition to In Progress
 		if sc.ToStatus == "In Progress" {
 			inProgress = sc
@@ -182,14 +195,24 @@ func main() {
 		}
 	}
 
-	//waitTime := inProgress.ChangeTime.Sub(created.ChangeTime)
-	//leadTime := lastChange.ChangeTime.Sub(created.ChangeTime)
-	//cycleTime := lastChange.ChangeTime.Sub(inProgress.ChangeTime)
+	// waitTime := inProgress.ChangeTime.Sub(created.ChangeTime)
+	// leadTime := lastChange.ChangeTime.Sub(created.ChangeTime)
+	// cycleTime := lastChange.ChangeTime.Sub(inProgress.ChangeTime)
 
 	waitTime := c.WorkdaysInRange(created.ChangeTime, inProgress.ChangeTime)
 	leadTime := c.WorkdaysInRange(created.ChangeTime, lastChange.ChangeTime)
-	cycleTime := c.WorkHoursInRange(inProgress.ChangeTime, lastChange.ChangeTime)
-	fmt.Println("Wait Days:", waitTime, "Lead Days:", leadTime, "Cycle Hours:", cycleTime)
+	cycleTime := c.WorkHoursInRange(
+		inProgress.ChangeTime,
+		lastChange.ChangeTime,
+	)
+	fmt.Println(
+		"Wait Days:",
+		waitTime,
+		"Lead Days:",
+		leadTime,
+		"Cycle Hours:",
+		cycleTime,
+	)
 }
 
 func basicAuth(username, password string) string {
@@ -236,7 +259,8 @@ func getStatusChanges(changelog Changelog) []StatusChange {
 		history := changelog.Values[j]
 		for k := range history.Items {
 			item := history.Items[k]
-			if item.Field == "status" && item.FieldID == "status" && item.FieldType == "jira" {
+			if item.Field == "status" && item.FieldID == "status" &&
+				item.FieldType == "jira" {
 				changeTime, timeErr := JIRATime(history.Created)
 				if timeErr != nil {
 					fmt.Println(timeErr)
@@ -284,7 +308,11 @@ type StatusChange struct {
 
 // This is a "glue" function.  It takes all of the more testable, behavioral
 // functions and "glues" them together without any other inherent behavior
-func getJiraTicket(jiraClient httpdoer.HttpRequestDoer, header http.Header, jiraBaseURL, jiraAPIURI string) (JIRAIssue, error) {
+func getJiraTicket(
+	jiraClient httpdoer.HttpRequestDoer,
+	header http.Header,
+	jiraBaseURL, jiraAPIURI string,
+) (JIRAIssue, error) {
 	url := jiraBaseURL + jiraAPIURI
 	req := BuildRequest(url)
 	response, respErr := jiraClient.Do(req)
@@ -295,8 +323,11 @@ func getJiraTicket(jiraClient httpdoer.HttpRequestDoer, header http.Header, jira
 	return ParseJiraIssue(body)
 }
 
-
-func getJiraChangeLog(jiraClient httpdoer.HttpRequestDoer, header http.Header, jiraBaseURL, jiraAPIURI string) (Changelog, error){
+func getJiraChangeLog(
+	jiraClient httpdoer.HttpRequestDoer,
+	header http.Header,
+	jiraBaseURL, jiraAPIURI string,
+) (Changelog, error) {
 	url := jiraBaseURL + jiraAPIURI
 	req := BuildRequest(url)
 	response, respErr := jiraClient.Do(req)
@@ -366,6 +397,7 @@ type JIRAIssue struct {
 	Key        string     `json:"key"`
 	JIRAFields JIRAFields `json:"fields"`
 }
+
 type JIRAFields struct {
 	Description string `json:"description"`
 	Summary     string `json:"summary"`
@@ -391,6 +423,6 @@ type Changelog struct {
 }
 
 type Values struct {
-	Created string  `json:"created"`
+	Created string           `json:"created"`
 	Items   []ChangelogItems `json:"items"`
 }

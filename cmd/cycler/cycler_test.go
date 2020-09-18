@@ -2,32 +2,39 @@ package main
 
 import (
 	"bytes"
-	assertions "github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"testing"
+
+	assertions "github.com/stretchr/testify/assert"
 )
 
 // Welcome to the 2019 Dev Offsite Go Dojo!
 //
 // We will be building a CLI tool to fetch a Jira ticket and print some details
 // to Standard Output (the screen).  You might notice in wti.go that we have the
-// shell of a file.  We've implemented the basics for running the code.  Only problem:
+// shell of a file.  We've implemented the basics for running the code.  Only
+// problem:
 // none of the actual behavior has been developed yet.
 //
-// This is up to you.  We've even written the tests for you!  Consider them to be
+// This is up to you.  We've even written the tests for you!  Consider them to
+// be
 // the specs for your functions.  Start with the first test and get it to pass.
 // Test your implementation by running `go test` from the command line.
 //
 // Once you've gotten the first test passing, go to the next test.
-// IMPORTANT: you must delete the t.Skip("") lines when you are ready to start working
-// on a new test.  We didn't want you to start with ALL the tests yelling at you.
+// IMPORTANT: you must delete the t.Skip("") lines when you are ready to start
+// working
+// on a new test.  We didn't want you to start with ALL the tests yelling at
+// you.
 //
 // Hints:
-// Just like in Khan Academy, we've structured the hints to help you along the way.
+// Just like in Khan Academy, we've structured the hints to help you along the
+// way.
 // The last hint in a function will give you the code to make the test pass.
-// Try to do it without the hints, but don't feel bad if you need to use them.  We're all learning!
+// Try to do it without the hints, but don't feel bad if you need to use them.
+// We're all learning!
 //
 // Try it when you are done:
 // go run wti.go LP-1000
@@ -35,7 +42,8 @@ import (
 // Stretch goals:
 // What else can you do to make this tool more useful?  Some ideas:
 // - Better error handling and reporting
-// - Use environment variables or CLI input for some hard-coded values (username, password, etc)
+// - Use environment variables or CLI input for some hard-coded values
+// (username, password, etc)
 // - Display more information to the user
 // - Allow searching by keyword
 //
@@ -44,8 +52,10 @@ import (
 func TestGenerateURL(t *testing.T) {
 	assert := assertions.New(t)
 	t.Run("URL concatenated from base + apipath + ticket", func(t *testing.T) {
-		// Hint #1 -- https://gist.github.com/BrianGenisio/59e493e7f791ddba6d5f353d1d5e1051
-		// Hint #2 -- https://gist.github.com/BrianGenisio/75f89a244970a3cdfc1e36f56d2e2edd
+		// Hint #1 --
+		// https://gist.github.com/BrianGenisio/59e493e7f791ddba6d5f353d1d5e1051
+		// Hint #2 --
+		// https://gist.github.com/BrianGenisio/75f89a244970a3cdfc1e36f56d2e2edd
 
 		// Arrange
 		jiraBaseURL := "https://not.importa.nt"
@@ -64,41 +74,48 @@ func TestGenerateURL(t *testing.T) {
 
 func TestBuildRequest(t *testing.T) {
 	assert := assertions.New(t)
-	t.Run("Build Request from url jira UserId and Jira Password", func(t *testing.T) {
-		t.Skip("Delete this when ready to go next")
+	t.Run(
+		"Build Request from url jira UserId and Jira Password",
+		func(t *testing.T) {
+			t.Skip("Delete this when ready to go next")
 
-		// Docs -- https://golang.org/pkg/net/http
-		// Hint #1 -- https://gist.github.com/BrianGenisio/a3ee7551c2b6bf0ca89ff3cd09b3c5c5
-		// Hint #2 -- https://gist.github.com/BrianGenisio/90f4a514df4b2e75e05ca9fa9f059aee
-		// Hint #3 -- https://gist.github.com/BrianGenisio/36c39d6c0ec3fdd4d45bfd9b2ff10777
-		// Hint #4 -- https://gist.github.com/BrianGenisio/952c490f42698b952800972b716346df
+			// Docs -- https://golang.org/pkg/net/http
+			// Hint #1 --
+			// https://gist.github.com/BrianGenisio/a3ee7551c2b6bf0ca89ff3cd09b3c5c5
+			// Hint #2 --
+			// https://gist.github.com/BrianGenisio/90f4a514df4b2e75e05ca9fa9f059aee
+			// Hint #3 --
+			// https://gist.github.com/BrianGenisio/36c39d6c0ec3fdd4d45bfd9b2ff10777
+			// Hint #4 --
+			// https://gist.github.com/BrianGenisio/952c490f42698b952800972b716346df
 
-		// Arrange
-		url := "https://nonsense.com"
-		jiraUserID := "aladdin"
-		jiraPassword := "opensesame"
+			// Arrange
+			url := "https://nonsense.com"
+			jiraUserID := "aladdin"
+			jiraPassword := "opensesame"
 
-		wantURL := url
-		wantAuth := "Basic YWxhZGRpbjpvcGVuc2VzYW1l"
-		wantJSONMIMEType := "application/json"
+			wantURL := url
+			wantAuth := "Basic YWxhZGRpbjpvcGVuc2VzYW1l"
+			wantJSONMIMEType := "application/json"
 
-		// Act
-		got := BuildRequest(url, jiraUserID, jiraPassword)
+			// Act
+			got := BuildRequest(url, jiraUserID, jiraPassword)
 
-		if assert.NotNil(got, "Expected to get a request back, got nil") {
+			if assert.NotNil(got, "Expected to get a request back, got nil") {
 
-			gotAuth := got.Header.Get("Authorization")
-			gotURL := got.URL.String()
-			gotAccept := got.Header.Get("Accept")
-			gotContentType := got.Header.Get("Content-Type")
+				gotAuth := got.Header.Get("Authorization")
+				gotURL := got.URL.String()
+				gotAccept := got.Header.Get("Accept")
+				gotContentType := got.Header.Get("Content-Type")
 
-			// Assert
-			assert.Equal(wantURL, gotURL)
-			assert.Equal(wantAuth, gotAuth)
-			assert.Equal(wantJSONMIMEType, gotContentType)
-			assert.Equal(wantJSONMIMEType, gotAccept)
-		}
-	})
+				// Assert
+				assert.Equal(wantURL, gotURL)
+				assert.Equal(wantAuth, gotAuth)
+				assert.Equal(wantJSONMIMEType, gotContentType)
+				assert.Equal(wantJSONMIMEType, gotAccept)
+			}
+		},
+	)
 }
 
 func TestGetBody(t *testing.T) {
@@ -107,10 +124,14 @@ func TestGetBody(t *testing.T) {
 		t.Skip("Delete this when ready to go next")
 
 		// Docs -- https://golang.org/pkg/io
-		// Hint #1 -- https://gist.github.com/BrianGenisio/cf696a9e29883a5089f8ddd725e20651
-		// Hint #2 -- https://gist.github.com/BrianGenisio/85a66b473c17c0face36ce5430502ae9
-		// Hint #3 -- https://gist.github.com/BrianGenisio/1154eeb5880a5606fa20ed6f3dd82696
-		// Hint #4 -- https://gist.github.com/BrianGenisio/358aec390f3b80b4037bd6a6c3cf9313
+		// Hint #1 --
+		// https://gist.github.com/BrianGenisio/cf696a9e29883a5089f8ddd725e20651
+		// Hint #2 --
+		// https://gist.github.com/BrianGenisio/85a66b473c17c0face36ce5430502ae9
+		// Hint #3 --
+		// https://gist.github.com/BrianGenisio/1154eeb5880a5606fa20ed6f3dd82696
+		// Hint #4 --
+		// https://gist.github.com/BrianGenisio/358aec390f3b80b4037bd6a6c3cf9313
 
 		// Arrange
 		dummyResponse := &http.Response{
@@ -135,7 +156,8 @@ func TestParseJiraResponse(t *testing.T) {
 	t.Run("empty response returns empty result", func(t *testing.T) {
 		t.Skip("Delete this when ready to go next")
 
-		// Hint #1 -- https://gist.github.com/BrianGenisio/8634fc8f14c5024f55a9cd6b18adc90c
+		// Hint #1 --
+		// https://gist.github.com/BrianGenisio/8634fc8f14c5024f55a9cd6b18adc90c
 
 		// Arrange
 		input := "{}"
@@ -153,8 +175,10 @@ func TestParseJiraResponse(t *testing.T) {
 		t.Skip("Delete this when ready to go next")
 
 		// Docs -- https://golang.org/pkg/encoding/json
-		// Hint #2 -- https://gist.github.com/BrianGenisio/f1e0646c5be39da8dd1da77e8aca60d8
-		// Hint #3 -- https://gist.github.com/BrianGenisio/0ec105a1031a209953db8f1a94acdfa0
+		// Hint #2 --
+		// https://gist.github.com/BrianGenisio/f1e0646c5be39da8dd1da77e8aca60d8
+		// Hint #3 --
+		// https://gist.github.com/BrianGenisio/0ec105a1031a209953db8f1a94acdfa0
 
 		// Arrange
 		input := `{
@@ -183,7 +207,8 @@ func TestParseJiraResponse(t *testing.T) {
 	t.Run("bad response returns an error", func(t *testing.T) {
 		t.Skip("Delete this when ready to go next")
 
-		// Hint #4 -- https://gist.github.com/BrianGenisio/6bd8dad67dc00e7d647f0e6353a0d486
+		// Hint #4 --
+		// https://gist.github.com/BrianGenisio/6bd8dad67dc00e7d647f0e6353a0d486
 
 		// Arrange
 		input := "interrupting cow"
@@ -197,10 +222,8 @@ func TestParseJiraResponse(t *testing.T) {
 }
 
 func BenchmarkGenerateURL(b *testing.B) {
-	var (
-		str, longStr string = "my_string", `qwertyuiopqwertyuiopqwertyuio
+	var str, longStr string = "my_string", `qwertyuiopqwertyuiopqwertyuio
 qwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiop`
-	)
 	for i := 0; i < b.N; i++ {
 		GenerateURL(str, longStr, strconv.Itoa(i))
 	}

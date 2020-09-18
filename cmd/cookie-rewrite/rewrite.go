@@ -13,13 +13,12 @@ func main() {
 	fmt.Println("--------------------------------")
 	fmt.Printf("%s\n", source_txt)
 	fmt.Println("--------------------------------")
-	var config = make(map[string]string)
-	//config["example.com"] = "localhost"
+	config := make(map[string]string)
+	// config["example.com"] = "localhost"
 	config["*"] = "yep"
 
 	// a regular expression
 	fmt.Println(rewriteCookieProperty(source_txt, config))
-
 }
 
 // https://gist.github.com/elliotchance/d419395aa776d632d897
@@ -63,7 +62,6 @@ cookieDomainRewrite: {
 }
 */
 func rewriteCookieProperty(header string, config map[string]string) string {
-
 	re := regexp.MustCompile(`(?i)(\s*; Domain=)([^;]+)`)
 	return ReplaceAllStringSubmatchFunc(re, header, func(groups []string) string {
 		match, prefix, previousValue := groups[0], groups[1], groups[2]
@@ -74,14 +72,14 @@ func rewriteCookieProperty(header string, config map[string]string) string {
 		} else if config["*"] != "" {
 			newValue = config["*"]
 		} else {
-			//no match, return previous value
+			// no match, return previous value
 			return match
 		}
 		if newValue != "" {
-			//replace value
+			// replace value
 			return prefix + newValue
 		} else {
-			//remove value
+			// remove value
 			return ""
 		}
 	})

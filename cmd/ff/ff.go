@@ -106,10 +106,10 @@ func Parse(fs *flag.FlagSet, args []string, options ...Option) error {
 
 // Context contains private fields used during parsing.
 type Context struct {
-	envVarPrefix           string
-	envVarNoPrefix         bool
-	envVarIgnoreCommas     bool
-	ignoreUndefined        bool
+	envVarPrefix       string
+	envVarNoPrefix     bool
+	envVarIgnoreCommas bool
+	ignoreUndefined    bool
 }
 
 // Option controls some aspect of parse behavior.

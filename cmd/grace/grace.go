@@ -13,7 +13,7 @@ import (
 
 type Server struct {
 	server *http.Server
-	log *log.Logger
+	log    *log.Logger
 }
 
 func main() {
@@ -43,7 +43,7 @@ func runServer() error {
 	// listen to quit channel, tell server to shutdown
 	go func() {
 		//cleanup: on interrupt shutdown webserver
-		<-quit	
+		<-quit
 		err := httpServer.server.Shutdown(context.Background())
 		fmt.Println("Woohoo! Look at")
 		if err != nil {
@@ -70,7 +70,7 @@ func newHTTPServer() *Server {
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	logger.Printf("HTTP server serving at %s", ":8080")
-	return  &Server{httpServer, logger}
+	return &Server{httpServer, logger}
 }
 
 func HealthCheck(w http.ResponseWriter, r *http.Request) {

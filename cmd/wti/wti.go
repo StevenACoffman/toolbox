@@ -12,14 +12,14 @@ import (
 
 func main() {
 	log := logger.New(os.Stderr, "", 0)
-	//replace with what you actually have
+	// replace with what you actually have
 	jiraUserID := "steve@khanacademy.org"
 	jiraPassword := os.ExpandEnv("${JIRA_API_TOKEN}")
 	jiraBaseURL := "https://khanacademy.atlassian.net"
 	jiraAPIURI := "/rest/api/2/issue/"
 
 	ticket := ""
-	//I don't need the program name
+	// I don't need the program name
 	args := os.Args[1:]
 
 	if len(args) == 0 {

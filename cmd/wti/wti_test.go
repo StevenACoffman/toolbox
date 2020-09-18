@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
-	assertions "github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"testing"
+
+	assertions "github.com/stretchr/testify/assert"
 )
 
 // Welcome to the 2019 Dev Offsite Go Dojo!
@@ -197,10 +198,8 @@ func TestParseJiraResponse(t *testing.T) {
 }
 
 func BenchmarkGenerateURL(b *testing.B) {
-	var (
-		str, longStr string = "my_string", `qwertyuiopqwertyuiopqwertyuio
+	var str, longStr string = "my_string", `qwertyuiopqwertyuiopqwertyuio
 qwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiop`
-	)
 	for i := 0; i < b.N; i++ {
 		GenerateURL(str, longStr, strconv.Itoa(i))
 	}

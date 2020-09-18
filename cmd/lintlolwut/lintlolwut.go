@@ -16,9 +16,11 @@ import (
 	"golang.org/x/tools/go/buildutil"
 )
 
-var test = flag.Bool("t", false, "include test .go files")
-var name = flag.Bool("n", false, "only show failing file names")
-var match = flag.String("match", "", "filepath to exact match")
+var (
+	test  = flag.Bool("t", false, "include test .go files")
+	name  = flag.Bool("n", false, "only show failing file names")
+	match = flag.String("match", "", "filepath to exact match")
+)
 
 func init() {
 	flag.Var((*buildutil.TagsFlag)(&build.Default.BuildTags), "tags", buildutil.TagsFlagDoc)
@@ -66,7 +68,7 @@ func main() {
 					outString := out.String()
 					errString := errOut.String()
 					fmt.Printf("Lint failed for %v\n", filePath)
-					if ! *name {
+					if !*name {
 						if outString != "" {
 							fmt.Println(outString)
 						}

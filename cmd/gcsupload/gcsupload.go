@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 }
 
 // uploadFile uploads an object.
@@ -39,4 +38,3 @@ func uploadFile(w io.Writer, bucket, objectName string, fileBytes []byte) error 
 	fmt.Fprintf(w, "Blob %v uploaded.\n", objectName)
 	return nil
 }
-

@@ -5,12 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,6 +14,13 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 /*
@@ -34,7 +35,6 @@ type NewPullRequest struct {
 }
 */
 
-
 func main() {
 	ctx := context.Background()
 	token := getEnvOrDie("GO_JIRA_PULL_REQUEST_AUTH_TOKEN")
@@ -47,8 +47,8 @@ func main() {
 	client := github.NewClient(tc)
 
 	// list all repositories for the authenticated user
-	//repos, _, _ := client.Repositories.List(ctx, "StevenACoffman", nil)
-	//fmt.Println(repos)
+	// repos, _, _ := client.Repositories.List(ctx, "StevenACoffman", nil)
+	// fmt.Println(repos)
 
 	repoName, organizationName, headBranchName := checkGitStatus()
 	title := ""
@@ -65,7 +65,9 @@ func main() {
 	}
 
 	if (stat.Mode() & os.ModeNamedPipe) == 0 {
-		fmt.Println("The command is intended to work with piped stdin but didn't get input. Assuming empty pull request description")
+		fmt.Println(
+			"The command is intended to work with piped stdin but didn't get input. Assuming empty pull request description",
+		)
 	} else {
 		stdInBytes, _ := ioutil.ReadAll(os.Stdin)
 		prDescription = string(stdInBytes)
@@ -75,9 +77,18 @@ func main() {
 	}
 	fmt.Println("title:" + title)
 	fmt.Println("head:" + headBranchName)
-	input := &github.NewPullRequest{Title: github.String(title), Head: github.String(headBranchName), Body: github.String(prDescription), Base: github.String("master")}
-	pull, response, err := client.PullRequests.Create(context.Background(), organizationName, repoName, input)
-
+	input := &github.NewPullRequest{
+		Title: github.String(title),
+		Head:  github.String(headBranchName),
+		Body:  github.String(prDescription),
+		Base:  github.String("master"),
+	}
+	pull, response, err := client.PullRequests.Create(
+		context.Background(),
+		organizationName,
+		repoName,
+		input,
+	)
 	if err != nil {
 		if response.StatusCode == 422 {
 			fmt.Println("Got Unprocessable Entity Error")
@@ -94,7 +105,10 @@ func main() {
 	}
 
 	if pull != nil {
-		fmt.Printf("Created Pull Request Successfully. Opening browser for %v\n", pull.HTMLURL)
+		fmt.Printf(
+			"Created Pull Request Successfully. Opening browser for %v\n",
+			pull.HTMLURL,
+		)
 		openbrowser(*pull.HTMLURL)
 	} else {
 		fmt.Println("Pull request was not created")
@@ -113,7 +127,10 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	headBranchName = headRef.Name().Short()
 	if headBranchName == "master" {
-		fmt.Fprintln(os.Stderr, "You are on master so not making a pull request")
+		fmt.Fprintln(
+			os.Stderr,
+			"You are on master so not making a pull request",
+		)
 		os.Exit(1)
 	}
 
@@ -124,7 +141,12 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	revHash, err := repo.ResolveRevision(plumbing.Revision(revision))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Did you forget to git push --set-upstream origin %s? The current branch %s has no upstream branch.\n", headBranchName, headBranchName)
+		fmt.Fprintf(
+			os.Stderr,
+			"Did you forget to git push --set-upstream origin %s? The current branch %s has no upstream branch.\n",
+			headBranchName,
+			headBranchName,
+		)
 		os.Exit(1)
 	}
 
@@ -134,7 +156,11 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	isAncestor, err := headCommit.IsAncestor(revCommit)
 	checkIfError(err)
 	if !isAncestor {
-		fmt.Fprintf(os.Stderr, "Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n", revision)
+		fmt.Fprintf(
+			os.Stderr,
+			"Did you forget to push? Your HEAD is not an ancestor of %s so not making a pull request\n",
+			revision,
+		)
 		os.Exit(1)
 	}
 
@@ -155,7 +181,8 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	checkIfError(err)
 
 	// Because it normally does not include global git config
-	// We cannot trust verification of the current status of the worktree using the method Status, without this mess
+	// We cannot trust verification of the current status of the worktree using
+	// the method Status, without this mess
 	// If it doesn't work just assume everything is clean.
 
 	cfg, err := parseGitConfig()
@@ -166,7 +193,10 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 
 	excludesfile := getExcludesFile(cfg)
 	if excludesfile == "" {
-		fmt.Fprintln(os.Stderr, "Could not get core.excludesfile from ~/.gitconfig")
+		fmt.Fprintln(
+			os.Stderr,
+			"Could not get core.excludesfile from ~/.gitconfig",
+		)
 		return
 	}
 
@@ -178,11 +208,19 @@ func checkGitStatus() (repoName, organizationName, headBranchName string) {
 	checkIfError(err)
 
 	if !status.IsClean() {
-		fmt.Fprintln(os.Stderr, "Did you forget to git commit or git add -A? You have modified or untracked files so not making a pull request")
+		fmt.Fprintln(
+			os.Stderr,
+			"Did you forget to git commit or git add -A? You have modified or untracked files so not making a pull request",
+		)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Current Org/Repo: %s/%s branch: %s\n", organizationName, repoName, headBranchName)
+	fmt.Printf(
+		"Current Org/Repo: %s/%s branch: %s\n",
+		organizationName,
+		repoName,
+		headBranchName,
+	)
 	return
 }
 
@@ -280,7 +318,11 @@ func openbrowser(url string) {
 	case "linux":
 		err = exec.Command("xdg-open", url).Start()
 	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		err = exec.Command(
+			"rundll32",
+			"url.dll,FileProtocolHandler",
+			url,
+		).Start()
 	case "darwin":
 		err = exec.Command("open", url).Start()
 	default:
@@ -289,7 +331,6 @@ func openbrowser(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func checkIfError(err error) {
@@ -319,4 +360,3 @@ func getArgs() []string {
 	}
 	return args
 }
-

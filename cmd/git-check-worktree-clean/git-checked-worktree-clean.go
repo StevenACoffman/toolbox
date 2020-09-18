@@ -3,15 +3,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 )
 
 // Example how to resolve a revision into its commit counterpart
@@ -53,7 +54,10 @@ func main() {
 
 	excludesfile := getExcludesFile(cfg)
 	if excludesfile == "" {
-		fmt.Fprintln(os.Stderr, "Could not get core.excludesfile from ~/.gitconfig")
+		fmt.Fprintln(
+			os.Stderr,
+			"Could not get core.excludesfile from ~/.gitconfig",
+		)
 		return
 	}
 
@@ -74,7 +78,6 @@ func main() {
 	fmt.Println(status)
 
 	fmt.Println(status.IsClean())
-
 }
 
 // CheckIfError should be used to naively panics if an error is not nil.

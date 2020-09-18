@@ -2,45 +2,45 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
-	"encoding/json"
-	"golang.org/x/crypto/ssh/terminal"
-	"log"
-	"path/filepath"
-	"net/http"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
+
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-var (
-	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
-)
+var defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
 
 const (
-	headerOTP           = "X-GitHub-OTP"
+	headerOTP = "X-GitHub-OTP"
 )
 
 // no flags please
 func getArgs() []string {
 	var args []string
 	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-"){
+		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-") {
 			continue
 		}
-		args = append(args,arg)
+		args = append(args, arg)
 	}
 	return args
 }
+
 func main() {
 	args := getArgs()
 
 	note := "Demonstration Personal Access Token"
 
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr,"Usage: gh-make-token <token-description>")
+		fmt.Fprintln(os.Stderr, "Usage: gh-make-token <token-description>")
 		panic(errors.New("Usage: gh-make-token <token-description>"))
 	} else {
 		note = args[0]
@@ -52,7 +52,6 @@ func main() {
 }
 
 func credentials() (string, string, string) {
-
 	fmt.Print("Enter Username: ")
 	username := GetUser()
 	password := GetPassword(username)
@@ -64,7 +63,7 @@ func credentials() (string, string, string) {
 func Check(err error) {
 	if err != nil {
 		log.Fatal(err)
-		//panic(err)
+		// panic(err)
 		os.Exit(1)
 	}
 }
@@ -80,7 +79,6 @@ func scanLine() string {
 	return line
 }
 
-
 func GetUser() (user string) {
 	user = os.Getenv("GITHUB_USER")
 	if user != "" {
@@ -92,7 +90,6 @@ func GetUser() (user string) {
 
 	return
 }
-
 
 func GetPassword(user string) (pass string) {
 	pass = os.Getenv("GITHUB_PASSWORD")
@@ -121,19 +118,20 @@ func configsFile() string {
 
 	return configsFile
 }
+
 type AuthorizationEntry struct {
 	Token string `json:"token"`
 }
 
-func makePersonalAccessToken(username , password , twoFactorCode, note string) {
-	body := strings.NewReader(`{"scopes":["repo"],"note":"`+note+`"}`)
+func makePersonalAccessToken(username, password, twoFactorCode, note string) {
+	body := strings.NewReader(`{"scopes":["repo"],"note":"` + note + `"}`)
 	req, err := http.NewRequest("POST", "https://api.github.com/authorizations", body)
 	if err != nil {
 		// handle err
 	}
 	req.SetBasicAuth(username, password)
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	if twoFactorCode != "" {
 		req.Header.Set("X-GitHub-OTP", twoFactorCode)
@@ -143,12 +141,11 @@ func makePersonalAccessToken(username , password , twoFactorCode, note string) {
 		Timeout: time.Second * 15, // Maximum of 15 secs
 	}
 
-
 	resp, err := githubClient.Do(req)
 	Check(err)
 
 	if resp.StatusCode == http.StatusUnauthorized && strings.HasPrefix(resp.Header.Get(headerOTP), "required") {
-		fmt.Errorf(" status code: %s, headerOTP: %s", resp.StatusCode, resp.Header.Get(headerOTP) )
+		fmt.Errorf(" status code: %s, headerOTP: %s", resp.StatusCode, resp.Header.Get(headerOTP))
 	}
 	respBody, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
@@ -157,9 +154,7 @@ func makePersonalAccessToken(username , password , twoFactorCode, note string) {
 	}
 	auth := &AuthorizationEntry{}
 
-
 	json.Unmarshal(respBody, &auth)
 	fmt.Printf("Authorization Token: %s", auth.Token)
 	defer resp.Body.Close()
-
 }

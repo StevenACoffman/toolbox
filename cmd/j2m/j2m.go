@@ -16,7 +16,6 @@ type Jiration struct {
 }
 
 func main() {
-
 	str := ""
 	stat, err := os.Stdin.Stat()
 	if err != nil {
@@ -44,14 +43,14 @@ func JiraToMD(str string) string {
 				return strings.Repeat("  ", len(stars)-1) + "* "
 			},
 		},
-		{ //Ordered Lists
+		{ // Ordered Lists
 			re: regexp.MustCompile(`(?m)^[ \t]*(#+)\s+`),
 			repl: func(groups []string) string {
 				_, nums := groups[0], groups[1]
 				return strings.Repeat("  ", len(nums)-1) + "1. "
 			},
 		},
-		{ //Headers 1-6
+		{ // Headers 1-6
 			re: regexp.MustCompile(`(?m)^h([0-6])\.(.*)$`),
 			repl: func(groups []string) string {
 				_, level, content := groups[0], groups[1], groups[2]
@@ -127,7 +126,7 @@ func JiraToMD(str string) string {
 			re:   regexp.MustCompile(`(?m)\{panel:title=([^}]*)\}\n?(.*?)\n?\{panel\}`),
 			repl: "\n| $1 |\n| --- |\n| $2 |",
 		},
-		{ //table header
+		{ // table header
 			re: regexp.MustCompile(`(?m)^[ \t]*((?:\|\|.*?)+\|\|)[ \t]*$`),
 			repl: func(groups []string) string {
 				_, headers := groups[0], groups[1]

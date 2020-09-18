@@ -3,14 +3,14 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/utils/merkletrie"
-	"os"
-	"strings"
 )
-
 
 // Example how to resolve a revision into its commit counterpart
 func main() {
@@ -19,7 +19,7 @@ func main() {
 
 	var hash plumbing.Hash
 
-	prevSha := os.Args[1] //prevSha
+	prevSha := os.Args[1] // prevSha
 
 	dir, err := os.Getwd()
 	CheckIfError(err)
@@ -34,7 +34,7 @@ func main() {
 		hash = headRef.Hash()
 		CheckIfError(err)
 	} else {
-		arg2 := os.Args[2] //optional descendent sha
+		arg2 := os.Args[2] // optional descendent sha
 		hash = plumbing.NewHash(arg2)
 	}
 
@@ -46,12 +46,14 @@ func main() {
 	commit, err := repo.CommitObject(hash)
 	CheckIfError(err)
 
-	fmt.Println("You are not crazy"+ prevCommit.Hash.String() + " "+ commit.Hash.String())
+	fmt.Println(
+		"You are not crazy" + prevCommit.Hash.String() + " " + commit.Hash.String(),
+	)
 
 	isAncestor, err := commit.IsAncestor(prevCommit)
 	CheckIfError(err)
 
-	fmt.Printf("Is the prevCommit an ancestor of commit? : %v %v\n",isAncestor)
+	fmt.Printf("Is the prevCommit an ancestor of commit? : %v %v\n", isAncestor)
 
 	currentTree, err := commit.Tree()
 	CheckIfError(err)
@@ -66,7 +68,7 @@ func main() {
 	var changedFiles []string
 	for _, fileStat := range patch.Stats() {
 		fmt.Println(fileStat.Name)
-		changedFiles = append(changedFiles,fileStat.Name)
+		changedFiles = append(changedFiles, fileStat.Name)
 	}
 
 	changes, err := currentTree.Diff(prevTree)
@@ -74,13 +76,11 @@ func main() {
 
 	fmt.Println("----- Changes -----")
 	for _, change := range changes {
-
-
 		// Ignore deleted files
 		action, err := change.Action()
 		CheckIfError(err)
 		if action == merkletrie.Delete {
-			//fmt.Println("Skipping delete")
+			// fmt.Println("Skipping delete")
 			continue
 		}
 
@@ -102,22 +102,21 @@ func main() {
 
 		//for _, re := range config.WhiteList.files {
 		//	if re.FindString(to.Name) != "" {
-		//		log.Debugf("skipping whitelisted file (matched regex '%s'): %s", re.String(), to.Name)
+		// 		log.Debugf("skipping whitelisted file (matched regex '%s'): %s",
+		// re.String(), to.Name)
 		//		return nil
 		//	}
 		//}
-
 	}
 }
 
 func getChangeName(change *object.Change) string {
-		var empty = object.ChangeEntry{}
-		if change.From != empty {
-			return change.From.Name
-		}
-		return change.To.Name
+	empty := object.ChangeEntry{}
+	if change.From != empty {
+		return change.From.Name
+	}
+	return change.To.Name
 }
-
 
 // CheckArgs should be used to ensure the right command line arguments are
 // passed before executing an example.

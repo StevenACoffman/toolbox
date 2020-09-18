@@ -34,7 +34,6 @@ func GetAppEngineVersionFromRepository(
 // Wed Jul 29 22:18:29 2020 -0700 53a7c033dc4f8f10f3122f03b5dd22cc7ec2fadf
 // 202907-2218-53a7c033dc4f
 func main() {
-
 	var repoPath string
 	if len(os.Args) < 2 {
 		var pathErr error

@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +15,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"encoding/json"
 
 	"github.com/gohugoio/hugo/codegen"
 	"github.com/gohugoio/hugo/resources/page/page_generate"
@@ -335,10 +335,9 @@ func buildTags() string {
 		return envtags
 	}
 	return "none"
-
 }
 
-var goList  = sh.OutCmd("go", "list", "-json", "./...")
+var goList = sh.OutCmd("go", "list", "-json", "./...")
 
 func goFiles() ([]string, error) {
 	out, err := goList()
@@ -378,6 +377,7 @@ func goFiles() ([]string, error) {
 	}
 	return goFiles, nil
 }
+
 // Generate test coverage report
 func GoList() error {
 	pkgs, err := goFiles()

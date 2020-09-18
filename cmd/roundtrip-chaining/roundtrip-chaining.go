@@ -12,8 +12,7 @@ import (
 // thanks to peter bourgon on Gophers slack
 
 func main() {
-
-	//replace with what you actually have
+	// replace with what you actually have
 	jiraUserID := os.ExpandEnv("${JIRA_USERID}")
 	jiraPassword := os.ExpandEnv("${JIRA_API_TOKEN}")
 	jiraBaseURL := "https://example.atlassian.net/rest/agile/1.0/board/"
@@ -45,14 +44,19 @@ type DelayRoundTripper struct {
 	delay time.Duration
 }
 
-func NewDelayRoundTripper(next http.RoundTripper, delay time.Duration) *DelayRoundTripper {
+func NewDelayRoundTripper(
+	next http.RoundTripper,
+	delay time.Duration,
+) *DelayRoundTripper {
 	return &DelayRoundTripper{
 		next:  next,
 		delay: delay,
 	}
 }
 
-func (rt *DelayRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (rt *DelayRoundTripper) RoundTrip(
+	req *http.Request,
+) (resp *http.Response, err error) {
 	time.Sleep(rt.delay)
 	return rt.next.RoundTrip(req)
 }
@@ -66,14 +70,19 @@ type LoggingRoundTripper struct {
 	dst  io.Writer
 }
 
-func NewLoggingRoundTripper(next http.RoundTripper, dst io.Writer) *LoggingRoundTripper {
+func NewLoggingRoundTripper(
+	next http.RoundTripper,
+	dst io.Writer,
+) *LoggingRoundTripper {
 	return &LoggingRoundTripper{
 		next: next,
 		dst:  dst,
 	}
 }
 
-func (rt *LoggingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (rt *LoggingRoundTripper) RoundTrip(
+	req *http.Request,
+) (resp *http.Response, err error) {
 	defer func(begin time.Time) {
 		fmt.Fprintf(rt.dst,
 			"method=%s host=%s status_code=%d err=%v took=%s\n",
@@ -89,11 +98,14 @@ func (rt *LoggingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response
 //
 
 type HeaderRoundTripper struct {
-	next http.RoundTripper
+	next   http.RoundTripper
 	Header http.Header
 }
 
-func NewHeaderRoundTripper(next http.RoundTripper, Header http.Header) *HeaderRoundTripper {
+func NewHeaderRoundTripper(
+	next http.RoundTripper,
+	Header http.Header,
+) *HeaderRoundTripper {
 	if next == nil {
 		next = http.DefaultTransport
 	}
@@ -103,7 +115,9 @@ func NewHeaderRoundTripper(next http.RoundTripper, Header http.Header) *HeaderRo
 	}
 }
 
-func (rt *HeaderRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (rt *HeaderRoundTripper) RoundTrip(
+	req *http.Request,
+) (resp *http.Response, err error) {
 	if rt.Header != nil {
 		for k, v := range rt.Header {
 			req.Header[k] = v
@@ -120,7 +134,7 @@ func (rt *HeaderRoundTripper) BasicAuth(username, password string) {
 
 	auth := username + ":" + password
 	base64Auth := base64.StdEncoding.EncodeToString([]byte(auth))
-	rt.Header.Set("Authorization", "Basic "+ base64Auth)
+	rt.Header.Set("Authorization", "Basic "+base64Auth)
 }
 
 func (rt *HeaderRoundTripper) SetHeader(key, value string) {
@@ -129,6 +143,3 @@ func (rt *HeaderRoundTripper) SetHeader(key, value string) {
 	}
 	rt.Header.Set(key, value)
 }
-
-
-

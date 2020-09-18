@@ -51,7 +51,7 @@ func main() {
 
 	month = month + Month(2)
 	// %!v(PANIC=runtime error: index out of range)
-	//fmt.Println(month)
+	// fmt.Println(month)
 
 	month = January + Month(2)
 	fmt.Println(month)
@@ -73,14 +73,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("MARSHALLED",string(b))
+	fmt.Println("MARSHALLED", string(b))
 
 	b = []byte(`{"month":"January"}`)
 
 	m := MyMonth{}
 	json.Unmarshal(b, &m)
 	fmt.Println(m)
-
 }
 
 func (m Month) IsValid() error {
@@ -96,7 +95,7 @@ func NewMonth(str String) (Month, error) {
 	if index == -1 {
 		return nil, errors.New("Inalid month type")
 	}
-	return Month(index+1)
+	return Month(index + 1)
 }
 
 type MyMonth struct {
@@ -110,7 +109,7 @@ func (m *Month) UnmarshalJSON(b []byte) error {
 }
 
 func (m *Month) MarshalJSON() ([]byte, error) {
-	return []byte( months[*m-1]), nil
+	return []byte(months[*m-1]), nil
 }
 
 func SliceIndex(limit int, predicate func(i int) bool) int {

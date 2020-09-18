@@ -20,7 +20,7 @@ func touchFile(filename string) {
 	file, err := os.Stat(filename)
 
 	if os.IsNotExist(err) {
-		//write timestamp to file so you can compare initial creation to last modification
+		// write timestamp to file so you can compare initial creation to last modification
 		const stampF = "20060102150405"
 		err = ioutil.WriteFile(filename, []byte(now.Format(stampF)), 0644)
 		file, err = os.Stat(filename)
@@ -42,4 +42,3 @@ func touchFile(filename string) {
 
 	fmt.Println("Changed the file time : ", now.Format(time.RFC3339))
 }
-
