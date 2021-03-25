@@ -87,15 +87,15 @@ func (m Month) IsValid() error {
 	case January, February, March, April, May, June, July, August, September, October, November, December:
 		return nil
 	}
-	return errors.New("Inalid leave type")
+	return errors.New("Invalid leave type")
 }
 
-func NewMonth(str String) (Month, error) {
+func NewMonth(value string) (Month, error) {
 	index := SliceIndex(len(months), func(i int) bool { return strings.EqualFold(months[i], value) })
 	if index == -1 {
-		return nil, errors.New("Inalid month type")
+		return 0, errors.New("Invalid month type")
 	}
-	return Month(index + 1)
+	return Month(index + 1), nil
 }
 
 type MyMonth struct {
@@ -104,8 +104,10 @@ type MyMonth struct {
 
 func (m *Month) UnmarshalJSON(b []byte) error {
 	value := strings.Trim(string(b), `"`)
-	*m = NewMonth(value)
-	return nil
+
+	month, err := NewMonth(value)
+	m = &month
+	return err
 }
 
 func (m *Month) MarshalJSON() ([]byte, error) {

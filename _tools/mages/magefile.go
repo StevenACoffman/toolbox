@@ -349,7 +349,7 @@ func goFiles() ([]string, error) {
 		ImportPath string `json:"ImportPath"`
 		Name       string `json:"Name"`
 		Doc        string `json:"Doc"`
-		Target     string `json:"Target"`
+		Target     string `json:"TargetFileToSourceTargetChecksum"`
 		Root       string `json:"Root"`
 		Module     struct {
 			Path      string `json:"Path"`

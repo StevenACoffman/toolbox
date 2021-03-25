@@ -4,10 +4,13 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
+	"fmt"
 	"io/ioutil"
 	logger "log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -21,6 +24,18 @@ func main() {
 	ticket := ""
 	// I don't need the program name
 	args := os.Args[1:]
+	var title, summary bool
+	flag.BoolVar(&title, "title", false, "Just Print Title")
+	flag.BoolVar(&summary, "summary", false, "Just Print Summary")
+
+	flagErr := flag.CommandLine.Parse(getFlags())
+	// check if we get a flag parse Error (e.g. missing required or
+	// unrecognized)
+	if flagErr != nil {
+			fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+			panic(errors.New("Usage: wti <ticket>"))
+			flag.PrintDefaults()
+	}
 
 	if len(args) == 0 {
 		log.Println("Usage: wti <ticket>")
@@ -31,8 +46,15 @@ func main() {
 
 	response, _ := getJiraTicket(jiraBaseURL, jiraAPIURI, ticket, jiraUserID, jiraPassword)
 
-	log.Printf("%s - %s\n\n", response.Key, response.Fields.Summary)
-	log.Println(response.Fields.Description)
+	if !title && !summary {
+		log.Printf("%s - %s\n\n", response.Key, response.Fields.Summary)
+		log.Println(response.Fields.Description)
+	} else if title {
+		log.Printf("%s - %s\n\n", response.Key, response.Fields.Summary)
+	} else if summary {
+		log.Println(response.Fields.Description)
+	}
+
 }
 
 // JIRAFields contains the JIRA fields for the issue
@@ -100,3 +122,15 @@ func ParseJiraResponse(jsonData string) (JIRAResponse, error) {
 
 	return jiraResponse, nil
 }
+
+// flags but no args
+func getFlags() []string {
+	var args []string
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") || strings.HasPrefix(arg, "-") {
+			args = append(args, arg)
+		}
+	}
+	return args
+}
+

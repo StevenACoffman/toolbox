@@ -120,17 +120,17 @@ func changesBetweenCommits(
 	if err != nil {
 		return nil, err
 	}
-
-	patch, err := currentTree.Patch(prevTree)
-	if err != nil {
-		return nil, err
-	}
-	// fmt.Println("----- Patch Stats ------")
-
-	for _, fileStat := range patch.Stats() {
-		// fmt.Println(fileStat.Name)
-		changedFiles = append(changedFiles, fileStat.Name)
-	}
+	//
+	//patch, err := currentTree.Patch(prevTree)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//// fmt.Println("----- Patch Stats ------")
+	//
+	//for _, fileStat := range patch.Stats() {
+	//	// fmt.Println(fileStat.Name)
+	//	changedFiles = append(changedFiles, fileStat.Name)
+	//}
 
 	changes, err := currentTree.Diff(prevTree)
 	if err != nil {

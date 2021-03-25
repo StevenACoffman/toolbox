@@ -16,6 +16,12 @@ If one or more source files are altered, which services must be rebuilt, reteste
 
 Monorepos pose some common problem, without a single standard solution. The different strategies that have been applied to this problem space can be seen by the variety of tools people have produced. I'm focusing on the ecosystem in Go.
 
+|   | multirepositories | monorepository  |
+|---|---|---|
+| monomodules  | monomodule multi-repositories   | monomodule monorepo  |
+| multimodules  | multi-module multi-repositoryies | multi-module monorepo |
+
+
 ##### Other Monorepo tools
 
 + [GTA](https://github.com/jphines/gta) - Go Test Auto - [Digital Ocean uses this](https://blog.digitalocean.com/cthulhu-organizing-go-code-in-a-scalable-repo/)
@@ -70,7 +76,12 @@ In a Multirepo layout, each project has its own Version Control System (e.g. git
 + Better discoverability. Monorepos gives us a 360° view of the codebase. This makes actions like estimating the impact of a change much easier to do. You can also leverage tools such as a global Find & Replace for quick refactors.
 + Development culture. Sharing knowledge becomes easier when everyone is working on the same codebase and can talk about the code at the same level. Growing pains are shared, helping promote a sense of empathy among the team.
 + Flexible architecture. The process of isolating (or merging) code in a Monorepo is less costly than in a Multirepo. There's no need to set up a whole new repository, configuration and deployment. This makes it easier to revert bad abstractions or over-engineered parts of a system.
-
+### Managing multirepos
++ [mr - tool to manage all your version control repositories](https://myrepos.branchable.com/)
++ [github2mr - convert github repos to mr](https://github.com/skx/github2mr)
++ [ghq - Manage remote repository clones](https://github.com/x-motemen/ghq)
++ [vcs - Repository Management for Go](https://github.com/Masterminds/vcs)
++ [gitbatch](https://github.com/isacikgoz/gitbatch)
 ### Some more git stuff
 ```shell script
 git rev-parse --show-toplevel

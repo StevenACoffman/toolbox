@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	err := SendAlert("bot-testing", "", "Yep")
+	err := SendAlert("1s-and-0s-deploys", "", "sun: sup")
 	log.Println(err)
 }
 

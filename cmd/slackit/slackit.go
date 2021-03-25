@@ -4,6 +4,9 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -220,30 +223,35 @@ func main() {
 		"What’s the best concert you’ve been to and why was it so good?",
 	}
 	rand.Seed(time.Now().Unix())
-
+fmt.Println(icebreakers[rand.Intn(len(icebreakers))])
 	data := Payload{
 		IconEmoji:   ":interrobang:",
 		IconURL:     "https://slack.global.ssl.fastly.net/9fa2/img/services/hubot_128.png",
-		Text:        icebreakers[rand.Intn(len(icebreakers))],
-		ChannelName: "khan-district-eng",
+		Text:        "sun: sup",
+		ChannelName: "1s-and-0s-deploys", // "khan-district-eng",
 		Color:       "#3AA3E3",
 	}
 
 	payloadBytes, err := json.Marshal(data)
 	if err != nil {
-		// handle err
+		log.Fatal(err)
 	}
 	body := bytes.NewReader(payloadBytes)
 
 	req, err := http.NewRequest("POST", "http://localhost:8080/slack", body)
 	if err != nil {
-		// handle err
+		log.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		// handle err
+		log.Fatal(err)
 	}
 	defer resp.Body.Close()
+	bytey, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(string(bytey))
 }
